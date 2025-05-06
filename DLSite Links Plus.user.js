@@ -1,36 +1,70 @@
 // ==UserScript==
 // @name        DLSite Links+
 // @namespace   Loli-A-Best
-// @include     *://boards.4chan.org/*/thread/*
-// @include     *://boards.4channel.org/*/thread/*
-// @version     2.0.6
+// @match       *://boards.4chan.org/*/thread/*
+// @match       *://boards.4channel.org/*/thread/*
+// @match       *://arch.b4k.dev/*/thread/*
+// @match       *://archived.moe/*/thread/*
+// @match       *://archive.4plebs.org/*/thread/*
+// @match       *://archive.palanq.win/*/thread/*
+// @match       *://archiveofsins.com/*/thread/*
+// @match       *://boards.fireden.net/*/thread/*
+// @match       *://desuarchive.org/*/thread/*
+// @match       *://thebarchive.com/*/thread/*
+// @match       *://warosu.org/*/thread/*
+// @version     2.1.0
 // @description Provide links from RJ, RE, VJ, DMM, VG and RG codes.
 // @icon        data:image/png;base64,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
-// @downloadURL https://github.com/hgg2d/hgg2d.github.io/raw/master/DLSite%20Links%20Plus.user.js
-// @updateURL   https://github.com/hgg2d/hgg2d.github.io/raw/master/DLSite%20Links%20Plus.user.js
 // @grant       none
 // @run-at      document-idle
 // ==/UserScript==
+/*TODO
+ * support op
+ */
 class Chan {
   CIEN = /(?:(?:http)?\S*ci-en\.dlsite\.com\S*)/gi;
   DMMCode = /(?:(?:dmm|www|https?)[^>\s]+)?(?:cid=)?(?:d_|DMM)(\d{6})\/?/gi;
   RGCirc = /(?:(?:http|www)?\S*com\S*)?[rv]g(\d{5})(?:\.html)?/gi;
-  RJCode = /(?:(?:http|www|dlsite)[^>\s]+)?[vr][je]((\d{3})\d{3})(?:\.html)?/gi;
+  RJCode = /(?:(?:http|www|dlsite)[^>\s]+)?[vr][je]((\d{3,5})\d{3})(?:\.html)?/gi;
 
   constructor() {
-    this.thread = document.querySelector('.thread');
+    switch(location.hostname) {
+      case 'boards.4chan.org':
+      case 'boards.4channel.org':
+        this.threadSelector = '.thread';
+        this.postSelector = '.postMessage';
+        break;
+      case 'warosu.org':
+        this.threadSelector = '.content';
+        this.postSelector = '.comment';
+        this.addNavBar = true;
+        break;
+      // assume foolFuuka archive
+      default:
+        this.threadSelector = '.thread:not(.stub)';
+        this.postSelector = '.thread .text';
+        this.addNavBar = true;
+        break;
+    }
+
+    this.thread = document.querySelector(this.threadSelector);
     this.initSettings();
     this.html();
     this.css();
     this.lewds = this.hgg2d.querySelector('.hgg2d__lewds');
     this.codes = this.hgg2d.querySelector('.hgg2d__codes');
     this.gridToggle = this.hgg2d.querySelector('.hgg2d__lewdsToggle > a');
+    this.jumpLinksToggle = this.hgg2d.querySelector('.hgg2d__jumpLinksToggle > a')
     this.settingsToggle = this.hgg2d__settings.querySelector('.hgg2d__settingsToggle > a');
     this.settingsBox = this.hgg2d__settings.querySelector('.hgg2d__settings');
     this.prev = this.addElement('img', document.body, { class: 'hgg2d__follow' });
+    this.prev.style.visibility = 'hidden';
     this.input_previewBar = this.hgg2d__settings.querySelector('.previewBar');
     this.input_previewGrid = this.hgg2d__settings.querySelector('.previewGrid');
     this.input_smoothScrolling = this.hgg2d__settings.querySelector('.smoothScrolling');
+    this.input_jumpLinks = this.hgg2d__settings.querySelector('.jumpLinks');
+    this.input_jumpLinksGrid = this.hgg2d__settings.querySelector('.jumpLinksGrid');
+    this.input_jumpLinksCodes = this.hgg2d__settings.querySelector('.jumpLinksCodes');
     // initEventListeners must come after setting lewds, codes, lewdsToggle,
     // settingsToggle, settingsBox, prev, input_previewBar, and input_previewGrid
     this.initEventListeners();
@@ -38,14 +72,14 @@ class Chan {
 
     /** @type {Set<string>} */
     this.games = new Set();
-    document.querySelectorAll('.postMessage').forEach(el => this.work(el));
+    document.querySelectorAll(this.postSelector).forEach(el => this.work(el));
   }
 
   /**
    * creates and adds an element to the document at the specified position
-   * @param {string} elementName 
-   * @param {HTMLElement} target 
-   * @param {{key:string, value:string}} attributes 
+   * @param {string} elementName
+   * @param {HTMLElement} target
+   * @param {{key:string, value:string}} attributes
    * @param {string} where can be values append | prepend | insertBefore | etc
    */
   addElement(elementName, target = document.body, attributes = {}, where = 'append') {
@@ -56,11 +90,11 @@ class Chan {
   }
 
   /**
-   * @param {HTMLAnchorElement} anchor 
+   * @param {HTMLAnchorElement} anchor
    * @param {string} code
    */
   addCode(anchor, code) {
-    const div = this.createElement('div');
+    const div = this.createElement('div', { class: 'hgg2d__code__container' });
     const clone = anchor.cloneNode();
     clone.append(code);
     div.appendChild(clone);
@@ -72,47 +106,65 @@ class Chan {
    * even when the grid is hidden. this allows us to take advantage of the error
    * checked images even for the fallback behavior of displaying previews near
    * the mouse.
-   * @param {string} src 
-   * @param {string} link 
+   * @param {string} src
+   * @param {string} link
    */
   addPreview(src, link) {
-    const anchor = this.createElement('a', { href: link, class: 'hgg2d__preview' });
-    const img = this.createElement('img', { class: 'hgg2d__preview' });
-    let errors = 0;
-    img.addEventListener('error', () => {
-      let src = img.src;
-      errors++;
-      if (errors > 2) {
-        anchor.remove();
-        img.remove();
+    function processResponse(img, response) {
+      response.blob().then((blob) => {
+        const reader = new FileReader();
+        reader.onload = (e) => { img.src = e.target.result };
+        reader.readAsDataURL(blob);
+      });
+    }
+    const div = this.createElement('div', { class: 'hgg2d__lewd__container' });
+    const anchor = this.createElement('a', { href: link, class: 'hgg2d__lewds__preview__link' });
+    const img = this.createElement('img', { class: 'hgg2d__lewds__preview' });
+    const jumpCon = this.createElement('div', { class: 'hgg2d__lewd__jumps' });
+    div.appendChild(jumpCon);
+    div.appendChild(anchor);
+    fetch(src).then(response => {
+      if (!(response.ok)) {
+        if (src.includes('dlsite')) {
+          let code = src.match(/[RV][JE](\d{2})?\d{6}/g)[1];
+          const barCode = this.codes.querySelector(`a[href*="${code}" i]`);
+          const threadLinks = this.thread.querySelectorAll(`a[href*="${code}" i]`);
+          if (src.includes('ana')) {
+            src = src.replace(/(https\S+)ana(\S+)_ana(\S+)/, '$1work$2$3');
+            barCode.href = barCode.href.replace('announce', 'work');
+          } else {
+            src = src.replace(/(https\S+)work(\S+?_)(\S+)/, '$1ana$2ana_$3');
+            barCode.href = barCode.href.replace('work', 'announce');
+          }
+          for (const threadLink of threadLinks) {
+            threadLink.href = barCode.href;
+          }
+          anchor.href = barCode.href;
+        }
+        fetch(src).then(response => {
+          if (!(response.ok)) {
+            anchor.remove();
+            img.remove();
+            jumpCon.remove();
+            div.remove();
+            return;
+          }
+          //img.src = src;
+          processResponse(img, response);
+          anchor.appendChild(img);
+        });
         return;
       }
-      if (src.includes('dlsite')) {
-        let code = src.match(/[RV][JE]\d{6}/g)[1];
-        const barCode = this.codes.querySelector(`a[href*="${code}"]`);
-        const threadLinks = this.thread.querySelectorAll(`a[href*="${code}"]`);
-        if (src.includes('ana')) {
-          src = src.replace(/(https\S+)ana(\S+)_ana(\S+)/, '$1work$2$3');
-          barCode.href = barCode.href.replace('announce', 'work');
-        } else {
-          src = src.replace(/(https\S+)work(\S+?_)(\S+)/, '$1ana$2ana_$3');
-          barCode.href = barCode.href.replace('work', 'announce');
-        }
-        for (const threadLink of threadLinks) {
-          threadLink.href = barCode.href;
-        }
-        anchor.href = barCode.href;
-      }
-      img.src = src;
+      //img.src = src;
+      processResponse(img, response);
+      anchor.appendChild(img);
     });
-    img.src = src;
-    anchor.appendChild(img);
-    this.lewds.appendChild(anchor);
+    this.lewds.appendChild(div);
   }
 
   /**
-   * @param {unknown[]} first 
-   * @param {unknown[]} second 
+   * @param {unknown[]} first
+   * @param {unknown[]} second
    * @returns {boolean}
    */
   arrayEquals(first, second) {
@@ -124,12 +176,12 @@ class Chan {
         return false;
       }
     }
-    return true;
+    return true;f
   }
 
   /**
    * create methods should not be called directly
-   * @param {string} href 
+   * @param {string} href
    * @returns {HTMLAnchorElement}
    */
   createCien(href) {
@@ -140,8 +192,8 @@ class Chan {
 
   /**
    * create methods should not be called directly
-   * @param {string} match 
-   * @param {string} code 
+   * @param {string} match
+   * @param {string} code
    * @returns {HTMLAnchorElement}
    */
   createCirc(match, code) {
@@ -154,8 +206,8 @@ class Chan {
 
   /**
    * create methods should not be called directly
-   * @param {string} match 
-   * @param {string} code 
+   * @param {string} match
+   * @param {string} code
    * @returns {HTMLAnchorElement}
    */
   createDMM(match, code) {
@@ -175,9 +227,9 @@ class Chan {
 
   /**
    * create methods should not be called directly
-   * @param {string} match 
-   * @param {string} code 
-   * @param {string} bucket 
+   * @param {string} match
+   * @param {string} code
+   * @param {string} bucket
    * @returns {HTMLAnchorElement} anchor
    */
   createRJ(match, code, bucket) {
@@ -194,7 +246,7 @@ class Chan {
     }
     this.games.add(bar);
     this.addCode(anchor, bar);
-    const round = this.padLeft(Number(bucket) % 1000 ? Number(bucket) + 1 : Number(bucket), 3);
+    const round = String(Number(bucket) % 1000 || Number(bucket) === 0 ? Number(bucket) + 1 : Number(bucket)).padStart(bucket.length, '0');
     const pathType = type === 'work' ? 'work' : 'ana';
     const circlePathType = circleType === 'pro' ? 'professional' : 'doujin';
     const src = `https://img.dlsite.jp/modpub/images2/${pathType}/${circlePathType}/${prefix}${round}000/${prefix}${code}${pathType === 'ana' ? '_ana' : ''}_img_main.jpg`;
@@ -204,8 +256,8 @@ class Chan {
 
   /**
    * creates an element without adding it to the document
-   * @param {string} elementName 
-   * @param {{key:string, value:string}} attributes 
+   * @param {string} elementName
+   * @param {{key:string, value:string}} attributes
    * @returns {HTMLElement}
    */
   createElement(elementName, attributes = {}) {
@@ -217,8 +269,8 @@ class Chan {
   }
 
   /**
-   * @param {string} phrase 
-   * @param {string} url 
+   * @param {string} phrase
+   * @param {string} url
    */
   createMatches(phrase, url) {
     const matchForm = this.hgg2d__settings.querySelector('.hgg2d__matchForm');
@@ -247,7 +299,7 @@ class Chan {
     const postNum = this.addElement('span', desktop, { class: 'postNum desktop' });
     this.addElement('a', postNum, { href: '#hgg2d__test', title: 'Link to this post' }).append('No.');
     this.addElement('a', postNum, { href: `javascript:quote('00000000')`, title: 'Reply to this post' }).append('00000000');
-    this.addElement('a', desktop, { href: '#', class: 'postMenuBtn', title: 'Post menu', 'data-cmd': 'post-menu' }).append('▶');
+    this.addElement('a', desktop, { href: '#', class: 'postMenuBtn', title: 'Post menu', 'data-cmd': 'post-menu' }).append('â–¶');
     const postMessage = this.addElement('blockquote', reply, { class: 'postMessage', id: 'm00000000' });
     postMessage.append('https://www.dlsite.com/maniax/work/=/product_id/RJ146992.html RJ146992');
     postMessage.append(br.cloneNode());
@@ -264,7 +316,6 @@ class Chan {
     postMessage.append('https://ci-en.dlsite.com/creator/8200/article/526520 https://ci-en.dlsite.com/creator/8200');
     postMessage.append(br.cloneNode());
     postMessage.append(`Fumika's game Violated Heroine VH nanako's game`);
-    this.addElement('img', postMessage, { src: 'https://static-cdn.jtvnw.net/emoticons/v2/emotesv2_447df256f3b1412b9fa0dfd3e9b6d84c/default/dark/3.0' });
   }
 
   css() {
@@ -282,7 +333,7 @@ class Chan {
       --fixedTop: ${this.offset}px;
       --backgroundColor: ${backgroundColor};
       --color: ${color};
-      --height: ${this.height}rem;
+      --height:  70%;
     }
     .hgg2d-absolute {
       position: absolute;
@@ -296,66 +347,121 @@ class Chan {
       box-sizing: border-box;
       right: 1rem;
       display: grid;
-      grid-template-columns: 1fr 5rem;
-      grid-template-rows: 1fr min-content min-content;
+      grid-template-columns: 1fr max-content;
+      grid-template-rows: min-content min-content auto;
       grid-auto-rows: auto;
-      grid-template-areas:  'lewds codes';
-      max-width: 45vw;
+      grid-template-areas:
+        'nav nav'
+        'toggle toggle'
+        'lewds codes';
+      max-width: 50vw;
       height: var(--height);
     }
-    
+
+    .hgg2d__navLinks {
+      display: flex;
+      justify-content: right;
+      grid-area: nav;
+    }
+
+    .hgg2d__toggles {
+      display: grid;
+      grid-template-columns: repeat(2, max-content);
+      justify-content: right;
+      grid-area: toggle;
+      margin-right: 5px;
+    }
+
+    .hgg2d__lewdsToggle {
+      margin-bottom: .5rem;
+    }
+
+    .hgg2d__lewdsToggle > a {
+      cursor: pointer;
+    }
+
     .hgg2d__codes {
       height: 100%;
       overflow: auto;
       grid-area: codes;
+      scrollbar-gutter: stable;
     }
-    
-    .hgg2d__follow {
-      display: block; 
-      position: fixed; 
-      top: 0; 
-      padding: 0; 
-      margin: 0; 
-      z-index: 8;
+
+    .hgg2d__code__container {
+      display: flex;
+      justify-content: left;
     }
-    
+
+    .hgg2d__code {
+      padding-right: 4px;
+    }
+
     .hgg2d__lewds {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       grid-area: lewds;
       align-content: baseline;
       overflow: clip auto;
+      scrollbar-gutter: stable;
     }
-    
-    .hgg2d__lewdsToggle {
-      margin-bottom: .5rem;
+
+    .hgg2d__lewd__container {
+      position: relative;
     }
-    
-    .hgg2d__lewdsToggle > a {
-      cursor: pointer;
+
+    .hgg2d__lewd__jumps {
+      position: absolute;
+      display: flex;
+      flex-wrap: wrap;
+      z-index: 1;
+      width: 100%;
     }
-    
+
+    .hgg2d__jump {
+      border-inline: 2px solid;
+      padding-inline: 2px;
+      background-color: white;
+      color: black;
+    }
+
+    .hgg2d__lewds__preview {
+      display: block;
+      width: 100%;
+      filter: brightness(80%);
+    }
+
+    .hgg2d__active,
+    .hgg2d__lewds__preview:hover {
+      filter: none;
+    }
+
+    .hgg2d__follow {
+      display: block;
+      position: fixed;
+      width: 560px;
+      aspect-ratio: 4/3;
+      top: 0;
+      padding: 0;
+      margin: 0;
+      z-index: 8;
+      pointer-events: none;
+    }
+
     .hgg2d__matchForm {
       overflow-y: auto;
       grid-area: matches;
     }
-    
+
     .hgg2d__match {
       display: grid;
       gap: 0.5rem;
       grid-template-columns: repeat(2, 1fr) min-content;
     }
-    
+
     .hgg2d__nogrid {
       width: 0;
     }
-    
-    .hgg2d__preview {
-      display: block;
-      width: 100%;
-      filter: brightness(80%);
-    }
-    
+
     .hgg2d__settings {
       display: grid;
       grid-template-columns: 1fr 2rem;
@@ -374,66 +480,60 @@ class Chan {
       color: var(--color);
       box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
     }
-    
+
     .hgg2d__settings-bars {
       grid-area: settings;
     }
-    
+
     .hgg2d__settings-close {
       grid-area: close;
       justify-self: end;
     }
-    
+
     .hgg2d__settings-close:hover {
       cursor: pointer;
     }
-    
-    .hgg2d-hidden {
-      display: none;
-    }
-    
+
     .hgg2d__settings-header {
       font-size: 1.5rem;
     }
-    
+
     .hgg2d__settingsToggle {
       grid-area: settings;
     }
-    
+
     .hgg2d__settingsToggle > a,
-    .hgg2d__toggle > a,
     .hgg2d__quicklinksToggle {
       cursor: pointer;
     }
-    
+
+    .hgg2d-hidden {
+      display: none;
+    }
+
     .hgg2d__textarea {
       resize: none;
       height: 1rem;
       overflow: hidden;
     }
-    
-    .hgg2d__toggle {
-      grid-area: toggle;
-    }
-    
-    .hgg2d__active,
-    .hgg2d__preview:hover {
-      filter: none;
-    }
-    
+
     .hgg2d__navbarItem::before,
     .hgg2d__toggle::before,
     .hgg2d__lewdsToggle::before,
+    .hgg2d__jumpLinksToggle::before,
     .hgg2d__settingsToggle::before {
-      content: '['
+      content: '[';
+      display: inline;
     }
     .hgg2d__navbarItem::after,
     .hgg2d__toggle::after,
     .hgg2d__lewdsToggle::after,
+    .hgg2d__jumpLinksToggle::after,
     .hgg2d__settingsToggle::after {
-      content: ']'
+      content: ']';
+      display: inline;
     }
-    
+
     .hgg2d__navbarItem {
       float: right;
       margin-right: 5px;
@@ -472,12 +572,18 @@ class Chan {
   html() {
     this.hgg2d = this.addElement('section', document.body, { class: 'hgg2d hgg2d-absolute' });
     this.hgg2d.innerHTML = (`
+      <div class='navLinks desktop hgg2d__navLinks'></div>
+      <div class='hgg2d__toggles'>
+        <div class="hgg2d__lewdsToggle">
+          <a>${this.settings.previewGrid ? 'grid' : 'no grid'}</a>
+        </div>
+        <div class='hgg2d__jumpLinksToggle'>
+          <a>${this.settings.jumpLinks ? 'jumps' : 'no jumps'}</a>
+        </div>
+      </div>
       <main class="hgg2d__lewds ${this.settings.previewGrid ? '' : 'hgg2d__nogrid'}">
       </main>
       <aside class="hgg2d__codes">
-        <div class="hgg2d__lewdsToggle">
-          <a>${this.settings.previewGrid ? 'hide' : 'show'}</a>
-        </div>
       </aside>
     `);
     this.hgg2d__settings = this.addElement('aside', document.body, { class: 'hgg2d__settings hgg2d-hidden' });
@@ -490,6 +596,15 @@ class Chan {
         </div>
         <div>
           <span>>></span><input type="checkbox" ${this.settings.previewGrid ? 'checked' : ''} class="previewGrid">Show Preview Grid</input>
+        </div>
+        <div>
+          <span>>></span><input type="checkbox" ${this.settings.jumpLinks ? 'checked' : ''} class="jumpLinks">Show Post Jumps</input>
+        </div>
+        <div>
+          <span>>>>></span><input type="checkbox" ${this.settings.jumpLinksGrid ? 'checked' : ''} class="jumpLinksGrid">Show Post Jumps In Grid</input>
+        </div>
+        <div>
+          <span>>>>></span><input type="checkbox" ${this.settings.jumpLinksCodes ? 'checked' : ''} class="jumpLinksCodes">Show Post Jumps In Code List</input>
         </div>
         <div>
           <input type="checkbox" ${this.settings.smoothScrolling ? 'checked' : ''} class="smoothScrolling">Smoothscrolling</input>
@@ -509,6 +624,10 @@ class Chan {
       this.createMatches(phrase, url);
     }
 
+    if (this.addNavBar) {
+      this.insertNavLinks();
+    }
+
     const navLinks = Array.from(document.querySelectorAll('.navLinks.desktop'));
     for (const navLink of navLinks) {
       const quicklinksToggleDiv = this.createElement('div', { class: 'hgg2d__navbarItem' });
@@ -519,6 +638,7 @@ class Chan {
         this.hgg2d__settings.classList.toggle('hgg2d-hidden');
       });
     }
+
     // development testing
     // this.createPost();
   }
@@ -527,7 +647,9 @@ class Chan {
     new MutationObserver(mutations => {
       for (const { addedNodes } of mutations.filter(mutation => mutation.type === 'childList')) {
         for (const node of addedNodes) {
-          this.work(node);
+          const postContent = node.querySelector(this.postSelector);
+          if (postContent)
+            this.work(postContent);
         }
       }
     }).observe(this.thread, {
@@ -536,6 +658,7 @@ class Chan {
     });
     document.body.addEventListener('mouseover', this.over, false);
     document.body.addEventListener('mouseout', this.out, false);
+    document.body.addEventListener('click', this.click, false);
 
     this.hgg2d__settings.querySelector('.hgg2d__settings-close').addEventListener('click', () => {
       this.hgg2d__settings.classList.toggle('hgg2d-hidden');
@@ -557,16 +680,40 @@ class Chan {
       } else {
         this.lewds.classList.add('hgg2d__nogrid');
       }
-      this.gridToggle.textContent = this.settings.previewGrid ? 'hide' : 'show';
+      this.gridToggle.textContent = this.settings.previewGrid ? 'grid' : 'no grid';
     });
 
     this.input_smoothScrolling.addEventListener('change', (e) => {
       this.settings.smoothScrolling = e.target.checked;
     });
 
+    this.input_jumpLinks.addEventListener('change', (e) => {
+      this.settings.jumpLinks = e.target.checked;
+      this.toggleJumpLinksGrid();
+      this.toggleJumpLinksCodes();
+      this.jumpLinksToggle.textContent = this.settings.jumpLinks ? 'jumps' : 'no jumps';
+    });
+
+    this.input_jumpLinksGrid.addEventListener('change', (e) => {
+      this.settings.jumpLinksGrid = e.target.checked;
+      this.toggleJumpLinksGrid();
+    });
+
+    this.input_jumpLinksCodes.addEventListener('change', (e) => {
+      this.settings.jumpLinksCodes = e.target.checked;
+      this.toggleJumpLinksCodes();
+    });
+
+    this.jumpLinksToggle.addEventListener('click', () => {
+      this.settings.jumpLinks = this.jumpLinksToggle.textContent === 'no jumps';
+      this.jumpLinksToggle.textContent = this.settings.jumpLinks ? 'jumps' : 'no jumps';
+      this.toggleJumpLinksGrid();
+      this.toggleJumpLinksCodes();
+    });
+
     this.gridToggle.addEventListener('click', () => {
-      this.settings.previewGrid = this.gridToggle.textContent === 'show';
-      this.gridToggle.textContent = this.settings.previewGrid ? 'hide' : 'show';
+      this.settings.previewGrid = this.gridToggle.textContent === 'no grid';
+      this.gridToggle.textContent = this.settings.previewGrid ? 'grid' : 'no grid';
       if (this.settings.previewGrid) {
         this.lewds.classList.remove('hgg2d__nogrid');
       } else {
@@ -596,6 +743,7 @@ class Chan {
           break;
       }
     });
+
     let ticking = false;
     /** @type {FrameRequestCallback} */
     const positionRecalc = () => {
@@ -621,6 +769,7 @@ class Chan {
       }
       ticking = false;
     };
+
     document.addEventListener('scroll', () => {
       if (!ticking) {
         window.requestAnimationFrame(positionRecalc);
@@ -628,6 +777,22 @@ class Chan {
       }
     });
     positionRecalc();
+  }
+
+  toggleJumpLinksGrid() {
+    if (this.settings.jumpLinksGrid && this.settings.jumpLinks) {
+      this.hgg2d.querySelectorAll('.hgg2d__jump__grid').forEach(el => el.classList.remove('hgg2d-hidden'));
+    } else {
+      this.hgg2d.querySelectorAll('.hgg2d__jump__grid').forEach(el => el.classList.add('hgg2d-hidden'));
+    }
+  }
+
+  toggleJumpLinksCodes() {
+  if (this.settings.jumpLinksCodes && this.settings.jumpLinks) {
+      this.hgg2d.querySelectorAll('.hgg2d__jump__list').forEach(el => el.classList.remove('hgg2d-hidden'));
+    } else {
+      this.hgg2d.querySelectorAll('.hgg2d__jump__list').forEach(el => el.classList.add('hgg2d-hidden'));
+    }
   }
 
   initSettings() {
@@ -642,9 +807,21 @@ class Chan {
       previewBar: true,
       previewGrid: true,
       smoothScrolling: true,
+      jumpLinks: true,
+      jumpLinksCodes: true,
+      jumpLinksGrid: true,
     };
     /**
-     * @type {{firstRun: boolean, previewBar: boolean, previewGrid: boolean, enabled: boolean, matches: {string: string}[], smoothScrolling: boolean}}
+     * @type {{
+     *    firstRun: boolean,
+     *    matches: {string: string}[],
+     *    previewBar: boolean,
+     *    previewGrid: boolean,
+     *    jumpLinks: boolean,
+     *    jumpLinksCodes: boolean,
+     *    jumpLinksGrid: boolean,
+     *    smoothScrolling: boolean
+     * }}
      */
     const target = JSON.parse(localStorage.getItem('hgg2d')) || defaults;
     const keys = Object.keys(target);
@@ -674,6 +851,10 @@ class Chan {
             this.input_previewBar.checked = value;
             this.toggle();
             break;
+          case 'jumpLinks':
+            this.input_jumpLinks.checked = value;
+            this.toggleJumps();
+            break;
         }
         localStorage.setItem('hgg2d', JSON.stringify(target));
         return true;
@@ -687,9 +868,23 @@ class Chan {
     if (this.settings.previewBar) {
       this.hgg2d.classList.remove('hgg2d-hidden');
       this.input_previewGrid.removeAttribute('disabled');
+      this.input_jumpLinks.removeAttribute('disabled');
+      this.toggleJumps();
     } else {
       this.hgg2d.classList.add('hgg2d-hidden');
       this.input_previewGrid.setAttribute('disabled', ' ');
+      this.input_jumpLinks.setAttribute('disabled', ' ');
+      this.toggleJumps();
+    }
+  }
+
+  toggleJumps() {
+    if (this.settings.previewBar && this.settings.jumpLinks) {
+      this.input_jumpLinksGrid.removeAttribute('disabled');
+      this.input_jumpLinksCodes.removeAttribute('disabled');
+    } else {
+      this.input_jumpLinksGrid.setAttribute('disabled', ' ');
+      this.input_jumpLinksCodes.setAttribute('disabled', ' ');
     }
   }
 
@@ -704,7 +899,7 @@ class Chan {
     while (child) {
       switch (child.nodeType) {
         case Node.ELEMENT_NODE:
-          if (['script', 'style', 'iframe', 'canvas', 'a'].includes(child.tagName.toLowerCase()))
+          if (['script', 'style', 'iframe', 'canvas'].includes(child.tagName.toLowerCase()))
             break;
           this.matchText(child, regex, callback);
           break;
@@ -718,6 +913,7 @@ class Chan {
               pad -= child.data.length + match.length;
               newTextNode.data = newTextNode.data.substr(match.length);
               const anchor = callback.apply(this, [match].concat(groups));
+              this.addPostJump(anchor, anchor.href);
               child.parentNode.insertBefore(anchor, newTextNode);
               child = newTextNode;
             });
@@ -738,22 +934,25 @@ class Chan {
     /** @type {HTMLImageElement} */
     let img;
     if (target.href.includes('dlsite')) {
-      const code = target.href.match(/[RV][JE]\d{6}/)[0];
-      img = this.lewds.querySelector(`img[src*="${code}"]`);
+      const code = target.href.match(/[RV][JE](\d{2})?\d{6}/)[0];
+      img = this.lewds.querySelector(`a[href*="${code}" i]`).firstChild;
       if (!img) return;
       if (this.settings.previewGrid && this.settings.previewBar) {
         img.classList.add('hgg2d__active');
-        const a = img.parentNode;
-        this.lewds.scrollTo({ top: a.offsetTop - a.clientHeight / 2, behavior });
+        img.scrollIntoView( { behavior: behavior, block: 'center' });
+        //const a = img.parentNode;
+        //this.lewds.scrollTo({ top: a.offsetTop - a.clientHeight / 2, behavior });
         return;
       }
     } else if (target.href.includes('dmm.co.jp')) {
       const code = target.href.match(/d_\d{1,}/)[0];
-      img = this.lewds.querySelector(`img[src*="${code}"]`);
+      img = this.lewds.querySelector(`a[href*="${code}" i]`).firstChild;
+      if (!img) return;
       if (this.settings.previewGrid && this.settings.previewBar) {
         img.classList.add('hgg2d__active');
-        const a = img.parentNode;
-        this.lewds.scrollTo({ top: a.offsetTop - a.clientHeight / 2, behavior });
+        img.scrollIntoView( { behavior: behavior, block: 'center' });
+        //const a = img.parentNode;
+        //this.lewds.scrollTo({ top: a.offsetTop - a.clientHeight / 2, behavior });
         return;
       }
     }
@@ -773,8 +972,8 @@ class Chan {
     const lewds = document.querySelector('.hgg2d__lewds');
     if (target.href.includes('dlsite')) {
       if (settings.previewGrid && settings.previewBar) {
-        const code = target.href.match(/[RV][JE]\d{6}/)[0];
-        const img = lewds.querySelector(`img[src*="${code}"]`);
+        const code = target.href.match(/[RV][JE](\d{2})?\d{6}/)[0];
+        const img = lewds.querySelector(`a[href*="${code}" i]`).firstChild;
         if (!img) return;
         img.classList.remove('hgg2d__active');
         return;
@@ -782,7 +981,7 @@ class Chan {
     } else if (target.href.includes('dmm.co.jp')) {
       if (this.settings.previewGrid && this.settings.previewBar) {
         const code = target.href.match(/d_\d{1,}/)[0];
-        const img = this.lewds.querySelector(`img[src*="${code}"]`);
+        const img = this.lewds.querySelector(`a[href*="${code}" i]`).firstChild;
         img.classList.remove('hgg2d__active');
         return;
       }
@@ -791,20 +990,42 @@ class Chan {
     this.prev.src = '';
   };
 
+  /** @param {MouseEvent} e */
+  click = (e) => {
+    const target = e.target.classList.contains('hgg2d__jump') ? e.target : undefined;
+    if (!target) return;
+    const destination = document.getElementById(target.getAttribute('jumpTo'));
+    destination.scrollIntoView( { behavior: this.settings.smoothScrolling ? 'smooth' : 'instant', block: 'center' } );
+  }
+
   /**
-   * @param {number | string} str 
-   * @param {number} len 
-   * @returns 
+   * @param {node} target
+   * @param {string} code
    */
-  padLeft(str, len) {
-    const cache = [
-      '',
-      '0',
-      '00'
-    ];
-    str = String(str);
-    len = len - str.length;
-    return `${cache[len]}${str}`;
+  addPostJump(target, href) {
+    const codeContainer = this.codes.querySelector(`a[href="${href}" i]`)?.parentNode;
+    const lewdJumpContainer = this.lewds.querySelector(`a[href="${href}" i]`)?.parentNode.querySelector('.hgg2d__lewd__jumps');
+    if (codeContainer) {
+      const id = href + '__' + codeContainer.childElementCount;
+      const listNotHidden = this.settings.jumpLinks && this.settings.jumpLinksCodes;
+      const gridNotHidden = this.settings.jumpLinks && this.settings.jumpLinksGrid;
+      const jumpElemList = this.createElement('div', { class: `hgg2d__jump hgg2d__jump__list ${listNotHidden ? '' : 'hgg2d-hidden'}` });
+      const jumpElemGrid = this.createElement('div', { class: `hgg2d__jump hgg2d__jump__grid ${gridNotHidden ? '' : 'hgg2d-hidden'}` });
+      jumpElemList.setAttribute('jumpTo', id);
+      jumpElemList.append('P');
+      jumpElemGrid.setAttribute('jumpTo', id);
+      jumpElemGrid.append('P');
+      target.id = id;
+      codeContainer.appendChild(jumpElemList);
+      lewdJumpContainer.appendChild(jumpElemGrid);
+    }
+  }
+
+  insertNavLinks() {
+    const navBar = this.addElement('div', document.body, { class: 'navLinks desktop' } );
+    this.thread.before(navBar);
+    this.thread.after(navBar.cloneNode());
+    this.hgg2d.before(navBar.cloneNode());
   }
 
   /** @param {HTMLElement} node */
