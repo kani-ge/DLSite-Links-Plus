@@ -19,7 +19,10 @@
 // @run-at      document-idle
 // ==/UserScript==
 /*TODO
- * support op
+ * pointer hover?
+ * archive setting box transparency
+ * storing settings accros sites
+ * test on different platforms
  */
 class Chan {
   CIEN = /(?:(?:http)?\S*ci-en\.dlsite\.com\S*)/gi;
@@ -32,17 +35,22 @@ class Chan {
       case 'boards.4chan.org':
       case 'boards.4channel.org':
         this.threadSelector = '.thread';
-        this.postSelector = '.postMessage';
+        this.postSelector = '.postContainer';
+        this.fileSelector = '.fileText';
+        this.fchanxWorkaround = true;   // 4chanx clobbers file div removing jump target
         break;
       case 'warosu.org':
         this.threadSelector = '.content';
         this.postSelector = '.comment';
+        this.fileSelector = '.fileinfo';
         this.addNavBar = true;
         break;
-      // assume foolFuuka archive
-      default:
+      default:  // assume foolFuuka archive
         this.threadSelector = '.thread:not(.stub)';
-        this.postSelector = '.thread .text';
+        this.postSelector = '.post';
+        this.fileSelector = '.post_file';
+        this.opSelector = '.thread:not(.stub) > .text';
+        this.opFileSelector = '.thread:not(.stub) > .thread_image_box';
         this.addNavBar = true;
         break;
     }
@@ -72,6 +80,10 @@ class Chan {
 
     /** @type {Set<string>} */
     this.games = new Set();
+    if (this.opFileSelector)
+      this.work(document.querySelector(this.opFileSelector));
+    if (this.opSelector)
+      this.work(document.querySelector(this.opSelector));
     document.querySelectorAll(this.postSelector).forEach(el => this.work(el));
   }
 
@@ -106,6 +118,9 @@ class Chan {
    * even when the grid is hidden. this allows us to take advantage of the error
    * checked images even for the fallback behavior of displaying previews near
    * the mouse.
+   * Image blobs are encoded as a data URI. This is to work around the img-src
+   * directive on b4k which allows data:. Wrapping images in iframes also works
+   * but chrome is gay and doesn't scale iframe content corretly.
    * @param {string} src
    * @param {string} link
    */
@@ -281,7 +296,7 @@ class Chan {
   }
 
   /**
-   * @param {string} code 
+   * @param {string} code
    */
   createBlocks(code) {
     const blockForm = this.hgg2d__settings.querySelector('.hgg2d__blockForm');
@@ -366,17 +381,6 @@ class Chan {
         'lewds codes';
       max-width: 50vw;
       height: var(--height);
-    }
-
-    .hgg2d__blockForm {
-      overflow-y: auto;
-      grid-area: blocks;
-    }
-
-    .hgg2d__block {
-      display: grid;
-      gap: 0.5rem;
-      grid-template-columns: 1fr 4rem;
     }
 
     .hgg2d__navLinks {
@@ -471,12 +475,26 @@ class Chan {
     .hgg2d__matchForm {
       overflow-y: auto;
       grid-area: matches;
+      height: 5rem;
+      margin-bottom: 0.5rem;
     }
 
     .hgg2d__match {
       display: grid;
       gap: 0.5rem;
       grid-template-columns: repeat(2, 1fr) 4rem;
+    }
+
+    .hgg2d__blockForm {
+      overflow-y: auto;
+      grid-area: blocks;
+      height: 5rem;
+    }
+
+    .hgg2d__block {
+      display: grid;
+      gap: 0.5rem;
+      grid-template-columns: 1fr 4rem;
     }
 
     .hgg2d__nogrid {
@@ -496,7 +514,7 @@ class Chan {
       left: 50vw;
       transform: translate(-50%, -50%);
       width: 30rem;
-      height: 15rem;
+      height: 20rem;
       padding: 0.5rem;
       background: var(--backgroundColor);
       color: var(--color);
@@ -681,9 +699,14 @@ class Chan {
     new MutationObserver(mutations => {
       for (const { addedNodes } of mutations.filter(mutation => mutation.type === 'childList')) {
         for (const node of addedNodes) {
-          const postContent = node.querySelector(this.postSelector);
-          if (postContent)
+          let postContent = node.querySelector(this.postSelector);
+          if (!postContent && node.classList.contains(this.postSelector.substr(1)))
+            postContent = node;
+          if (postContent){
+            console.log('content');
+            console.log(postContent);
             this.work(postContent);
+          }
         }
       }
     }).observe(this.thread, {
@@ -940,15 +963,20 @@ class Chan {
    * @param {RegExp} regex
    * @param {Function} callback
    */
-  matchText(node, regex, callback) {
+  matchText(node, regex, callback, file = null) {
     /** @type {Text} */
     let child = node.firstChild;
+    if (!file) {
+      file = node.querySelector(this.fileSelector);
+      if (!file)
+        file = this.createElement('div');   // empty div
+    }
     while (child) {
       switch (child.nodeType) {
         case Node.ELEMENT_NODE:
           if (['script', 'style', 'iframe', 'canvas'].includes(child.tagName.toLowerCase()))
             break;
-          this.matchText(child, regex, callback);
+          this.matchText(child, regex, callback, file);
           break;
         case Node.TEXT_NODE:
           if (regex.test(child.data)) {
@@ -961,8 +989,15 @@ class Chan {
               pad -= child.data.length + match.length;
               newTextNode.data = newTextNode.data.substr(match.length);
               const anchor = callback.apply(this, [match].concat(groups));
-              this.addPostJump(anchor, anchor.href);
               child.parentNode.insertBefore(anchor, newTextNode);
+              let targetNode = anchor;
+              let fileflag = false;
+              if (file.contains(node)){
+                fileflag = true;
+                if (this.fchanxWorkaround)
+                  targetNode = file;
+              }
+              this.addPostJump(targetNode, anchor.href, fileflag);
               child = newTextNode;
             });
           }
@@ -1050,20 +1085,26 @@ class Chan {
    * @param {node} target
    * @param {string} code
    */
-  addPostJump(target, href) {
+  addPostJump(target, href, fileflag) {
+    if (this.fchanxWorkaround && fileflag && target.querySelector(`[id^="${href}" i]`))
+      return;
     const codeContainer = this.codes.querySelector(`a[href="${href}" i]`)?.parentNode;
     const lewdJumpContainer = this.lewds.querySelector(`a[href="${href}" i]`)?.parentNode.querySelector('.hgg2d__lewd__jumps');
+    const letter = fileflag ? 'F' : 'P';
     if (codeContainer) {
       const id = href + '__' + codeContainer.childElementCount;
       const listNotHidden = this.settings.jumpLinks && this.settings.jumpLinksCodes;
       const gridNotHidden = this.settings.jumpLinks && this.settings.jumpLinksGrid;
-      const jumpElemList = this.createElement('div', { class: `hgg2d__jump hgg2d__jump__list ${listNotHidden ? '' : 'hgg2d-hidden'}` });
-      const jumpElemGrid = this.createElement('div', { class: `hgg2d__jump hgg2d__jump__grid ${gridNotHidden ? '' : 'hgg2d-hidden'}` });
+      const jumpElemList = this.createElement('button', { class: `hgg2d__jump hgg2d__jump__list ${listNotHidden ? '' : 'hgg2d-hidden'}` });
+      const jumpElemGrid = this.createElement('button', { class: `hgg2d__jump hgg2d__jump__grid ${gridNotHidden ? '' : 'hgg2d-hidden'}` });
       jumpElemList.setAttribute('jumpTo', id);
-      jumpElemList.append('P');
+      jumpElemList.append(letter);
       jumpElemGrid.setAttribute('jumpTo', id);
-      jumpElemGrid.append('P');
-      target.id = id;
+      jumpElemGrid.append(letter);
+      if (this.fchanxWorkaround && fileflag)
+        target.appendChild(this.createElement('div', { id: id }));
+      else
+        target.id = id;
       codeContainer.appendChild(jumpElemList);
       lewdJumpContainer.appendChild(jumpElemGrid);
     }
@@ -1077,7 +1118,7 @@ class Chan {
   }
 
   /**
- * @param {HTMLElement} node 
+ * @param {HTMLElement} node
  */
   processFileText(node) {
     /** @type {string[]} */
@@ -1104,7 +1145,7 @@ class Chan {
     this.matchText(node, this.RGCirc, (match, code) => this.createCirc(match, code));
     this.matchText(node, this.RJCode, (match, code, bucket) => this.createRJ(match, code, bucket));
     this.matchSearches(node);
-    this.processFileText(node);
+    //this.processFileText(node);
   }
 }
 new Chan();
