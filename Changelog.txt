@@ -1,3 +1,15 @@
+Version 2.1
+= New managment
+= Features
+- Added proper support for FoolFuuka based archives and Warosu
+- Changed image handling to enable previews on b4k specifically
+- Added jump to post buttons to code list and preview grid
+= UI Changes
+- Changed height of main element to scale with view window height
+- Added toggles to settings dialouge for jump buttons
+= Miscellaneous
+- RE codes resolve to RJ conterparts as dlsite english merged with jp site
+
 Version 2.0.7.1
 = Features
 - Added in parsing for RJ codes within image names

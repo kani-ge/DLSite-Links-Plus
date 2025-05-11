@@ -18,12 +18,6 @@
 // @grant       none
 // @run-at      document-idle
 // ==/UserScript==
-/*TODO
- * pointer hover?
- * archive setting box transparency
- * storing settings accros sites
- * test on different platforms
- */
 class Chan {
   CIEN = /(?:(?:http)?\S*ci-en\.dlsite\.com\S*)/gi;
   DMMCode = /(?:(?:dmm|www|https?)[^>\s]+)?(?:cid=)?(?:d_|DMM)(\d{6})\/?/gi;
@@ -37,7 +31,6 @@ class Chan {
         this.threadSelector = '.thread';
         this.postSelector = '.postContainer';
         this.fileSelector = '.fileText';
-        this.fchanxWorkaround = true;   // 4chanx clobbers file div removing jump target
         break;
       case 'warosu.org':
         this.threadSelector = '.content';
@@ -213,7 +206,7 @@ class Chan {
    */
   createCirc(match, code) {
     const [type, prefix] = match.includes('RG') ? ['maniax', 'RG'] : ['pro', 'VG'];
-    const href = `https://www.dlsite.com/${type}/circle/profile/=/maker_id/${prefix}${code}.html`;
+    const href = `https://www.dlsite.com/${type}/circleprofile/=/maker_id/${prefix}${code}.html`;
     const anchor = this.createElement('a', { href });
     anchor.append(match);
     return anchor;
@@ -250,12 +243,12 @@ class Chan {
   createRJ(match, code, bucket) {
     this.RJCode.lastIndex = 0;
     const type = (match.includes('announce') || /[rv]j?a/i.test(match)) ? 'announce' : 'work';
-    const circleType = match.includes('VJ') ? 'pro' : match.includes('RE') ? 'ecchi-eng' : 'maniax';
-    const prefix = match.includes('VJ') ? 'VJ' : match.includes('RE') ? 'RE' : 'RJ';
+    const circleType = match.includes('VJ') ? 'pro' : 'maniax';
+    const prefix = match.includes('VJ') ? 'VJ' : 'RJ';
     const href = `https://www.dlsite.com/${circleType}/${type}/=/product_id/${prefix}${code}.html`;
     const anchor = this.createElement('a', { class: 'hgg2d__code', href });
     anchor.append(match);
-    const bar = `${prefix}${code}`;
+    const bar = `${match.includes('RE') ? 'RE' : prefix}${code}`;
     if (this.games.has(bar)) {
       return anchor;
     }
@@ -994,8 +987,7 @@ class Chan {
               let fileflag = false;
               if (file.contains(node)){
                 fileflag = true;
-                if (this.fchanxWorkaround)
-                  targetNode = file;
+                targetNode = file;
               }
               this.addPostJump(targetNode, anchor.href, fileflag);
               child = newTextNode;
@@ -1086,7 +1078,7 @@ class Chan {
    * @param {string} code
    */
   addPostJump(target, href, fileflag) {
-    if (this.fchanxWorkaround && fileflag && target.querySelector(`[id^="${href}" i]`))
+    if (fileflag && target.querySelector(`[id^="${href}" i]`))
       return;
     const codeContainer = this.codes.querySelector(`a[href="${href}" i]`)?.parentNode;
     const lewdJumpContainer = this.lewds.querySelector(`a[href="${href}" i]`)?.parentNode.querySelector('.hgg2d__lewd__jumps');
@@ -1101,7 +1093,7 @@ class Chan {
       jumpElemList.append(letter);
       jumpElemGrid.setAttribute('jumpTo', id);
       jumpElemGrid.append(letter);
-      if (this.fchanxWorkaround && fileflag)
+      if (fileflag)
         target.appendChild(this.createElement('div', { id: id }));
       else
         target.id = id;
@@ -1117,23 +1109,6 @@ class Chan {
     this.hgg2d.before(navBar.cloneNode());
   }
 
-  /**
- * @param {HTMLElement} node
- */
-  processFileText(node) {
-    /** @type {string[]} */
-    const fileTexts = Array.from(node.querySelectorAll('.fileText'))
-      .map(el => el.title || el.querySelector('a').textContent);
-    for (const fileText of fileTexts) {
-      if (this.RJCode.test(fileText)) {
-        this.RJCode.lastIndex = 0;
-        const [match, code, bucket] = this.RJCode.exec(fileText);
-        this.createRJ(match, code, bucket);
-        continue;
-      }
-    }
-  }
-
   /** @param {HTMLElement} node */
   work(node) {
     for (const el of node.querySelectorAll('wbr')) {
@@ -1145,7 +1120,6 @@ class Chan {
     this.matchText(node, this.RGCirc, (match, code) => this.createCirc(match, code));
     this.matchText(node, this.RJCode, (match, code, bucket) => this.createRJ(match, code, bucket));
     this.matchSearches(node);
-    //this.processFileText(node);
   }
 }
 new Chan();
