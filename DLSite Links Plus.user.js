@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name        DLSite Links+ dev
+// @name        DLSite Links+
 // @namespace   Loli-A-Best
 // @match       *://boards.4chan.org/*/thread/*
 // @match       *://boards.4channel.org/*/thread/*
