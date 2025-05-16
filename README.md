@@ -1,14 +1,15 @@
-# hgg2d simple repository
+# DLSite Links+
 
-### [Quicklink Script (requires userscript addon)](https://github.com/hgg2d/hgg2d.github.io/raw/master/DLSite%20Links%20Plus.user.js) | [Source](https://github.com/hgg2d/hgg2d.github.io/blob/master/DLSite%20Links%20Plus.user.js)
-#### [Beta Quicklink Script](https://github.com/hgg2d/hgg2d.github.io/raw/beta/DLSite%20Links%20Plus.user.js) | [Source](https://github.com/hgg2d/hgg2d.github.io/blob/beta/DLSite%20Links%20Plus.user.js)
+### [Install Script (requires userscript addon)](https://github.com/kani-ge/DLSite-Links-Plus/raw/master/DLSite%20Links%20Plus.user.js) | [Source](https://github.com/kani-ge/DLSite-Links-Plus/blob/master/DLSite%20Links%20Plus.user.js)
 
-#### You will need a UserScript addon to install this script. For Firefox users I recommend [Greasemonkey](https://addons.mozilla.org/en-US/firefox/addon/greasemonkey) for Chrome users I suggest switching to Firefox or using [Tampermonkey](https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo)
+A lightweight enhancement for /hgg2d/. Linkifies and generates previews for DLSite and DMM
 
-##### features:
+### Features:
 
-- Converts DLSite RG/RJ/RE codes and urls into clickable links
-- Additionally RJ, RE, and DMM links supply an on-hover preview image so you don't have to navigate to an additional web-page
-- \*NEW\* Grid view has been implemented, enjoy
+- Converts DLSite RG/RJ/RE/VG/VJ codes and DMM/d_ codes into clickable links
+- DLSite and DMM links supply an on-hover preview image
+- Grid containing said preview images
+- Buttons that scroll the page to posts containing links
+- Works on 4chan and associated archives
 
 ![](https://github.com/hgg2d/hgg2d.github.io/raw/master/Preview.gif)
