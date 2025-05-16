@@ -743,9 +743,8 @@ class Chan {
           let postContent = node.querySelector(this.postSelector);
           if (!postContent && node.classList.contains(this.postSelector.substr(1)))
             postContent = node;
-          if (postContent){
+          if (postContent)
             this.work(postContent);
-          }
         }
       }
     }).observe(this.thread, {

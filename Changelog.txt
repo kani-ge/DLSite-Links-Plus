@@ -1,4 +1,4 @@
-Version 2.1
+Version 2.1.0
 = New managment
 = Features
 - Added proper support for FoolFuuka based archives and Warosu
