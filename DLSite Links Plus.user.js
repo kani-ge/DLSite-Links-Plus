@@ -21,7 +21,7 @@
 // @run-at      document-idle
 // ==/UserScript==
 class Chan {
-  CIEN = /(?:(?:http)?\S*ci-en\.dlsite\.com\/creator\S*)/gi;
+  CIEN = /(?:(?:http[^>\s]+)?ci-en\.dlsite\.com\/creator\/(\d*)(?:\/article\/(\d*))?)/gi;
   DMMCode = /(?:(?:dmm|www|https?)[^>\s]+)?(?:cid=)?(?:d_|DMM)(\d{6})\/?/gi;
   RGCirc = /(?:(?:http|www)?\S*com\S*)?[rv]g(\d{5})(?:\.html)?/gi;
   RJCode = /(?:(?:http|www|dlsite)[^>\s]+)?[vr][je]((\d{3,5})\d{3})(?:\.html)?/gi;
@@ -195,11 +195,11 @@ class Chan {
       onload: function(response) {
         const parser = new DOMParser();
         const doc = parser.parseFromString(response.responseText, 'text/html');
-        const squirrel = 'https://ci-en.dlsite.com/assets/img/common/adultcheck_mascot.png'
+        const nut = 'https://ci-en.dlsite.com/assets/img/common/pic_acorn.png'
         let img = doc.querySelector('.file-player-image');
         if (!img)
           img = doc.querySelector('.is-creatorHeading > .image');
-        chan.fetchImg(img ? img.getAttribute('src') : squirrel, div);
+        chan.fetchImg(img ? img.getAttribute('src') : nut, div);
       },
     }).catch((e) => { div.remove(); });
   }
@@ -226,9 +226,9 @@ class Chan {
    * @param {string} href
    * @returns {HTMLAnchorElement}
    */
-  createCien(href) {
-    const anchor = this.createElement('a', { class: 'hgg2d__code', href });
-    const bar = `cientest`;
+  createCien(href, creator, article) {
+    const anchor = this.createElement('a', { class: 'hgg2d__code hgg2d__cien__code', href });
+    const bar = 'C' + creator + (article ? ('/' + article) : '');
     anchor.append(href);
     if (this.games.has(bar))
       return anchor;
@@ -452,6 +452,13 @@ class Chan {
 
     .hgg2d__code {
       padding-right: 4px;
+      width: 59%;
+    }
+
+    .hgg2d__cien__code {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      width: 59%;
     }
 
     .hgg2d__lewds {
@@ -1143,7 +1150,7 @@ class Chan {
       el.remove();
     }
     node.normalize();
-    this.matchText(node, this.CIEN, (href) => this.createCien(href));
+    this.matchText(node, this.CIEN, (href, creator, article) => this.createCien(href, creator, article));
     this.matchText(node, this.DMMCode, (match, code) => this.createDMM(match, code));
     this.matchText(node, this.RGCirc, (match, code) => this.createCirc(match, code));
     this.matchText(node, this.RJCode, (match, code, bucket) => this.createRJ(match, code, bucket));
