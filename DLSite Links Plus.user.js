@@ -128,14 +128,17 @@ class Chan {
    * @param {string} link
    * @param {Function} fetchCallback
    */
-  addPreview(src, link, fetchCallback = this.fetchImg) {
-    const div = this.createElement('div', { class: 'hgg2d__lewd__container' });
+  addPreview(src, link, site, fetchCallback = this.fetchImg) {
+    const div = this.createElement('div', { class: 'hgg2d__lewds__container' });
     const anchor = this.createElement('a', { href: link, class: 'hgg2d__lewds__preview__link' });
     const img = this.createElement( this.embedPreview ? 'embed' : 'img', { class: 'hgg2d__lewds__preview' });
-    const jumpCon = this.createElement('div', { class: 'hgg2d__lewd__jumps' });
+    const jumpCon = this.createElement('div', { class: 'hgg2d__lewds__jumps' });
+    const siteElem = this.createElement('span', { class: 'hgg2d__lewds__site' });
     div.appendChild(jumpCon);
     div.appendChild(anchor);
+    div.appendChild(siteElem);
     anchor.appendChild(img);
+    siteElem.textContent = site;
     fetchCallback.apply(this, [src, div]);
     this.lewds.appendChild(div);
   }
@@ -234,7 +237,7 @@ class Chan {
       return anchor;
     this.games.add(bar);
     this.addCode(anchor, bar);
-    this.addPreview(href, anchor.href, this.fetchCIEN);
+    this.addPreview(href, anchor.href, 'ci-en', this.fetchCIEN);
     return anchor;
   }
 
@@ -246,7 +249,7 @@ class Chan {
    */
   createCirc(match, code) {
     const [type, prefix] = match.includes('RG') ? ['maniax', 'RG'] : ['pro', 'VG'];
-    const href = `https://www.dlsite.com/${type}/circleprofile/=/maker_id/${prefix}${code}.html`;
+    const href = `https://www.dlsite.com/${type}/circle/profile/=/maker_id/${prefix}${code}.html`;
     const anchor = this.createElement('a', { href });
     anchor.append(match);
     return anchor;
@@ -269,7 +272,7 @@ class Chan {
     }
     this.games.add(bar);
     this.addCode(anchor, bar);
-    this.addPreview(src, anchor.href);
+    this.addPreview(src, anchor.href, 'dmm');
     return anchor;
   }
 
@@ -298,7 +301,7 @@ class Chan {
     const pathType = type === 'work' ? 'work' : 'ana';
     const circlePathType = circleType === 'pro' ? 'professional' : 'doujin';
     const src = `https://img.dlsite.jp/modpub/images2/${pathType}/${circlePathType}/${prefix}${round}000/${prefix}${code}${pathType === 'ana' ? '_ana' : ''}_img_main.jpg`;
-    this.addPreview(src, anchor.href);
+    this.addPreview(src, anchor.href, 'dlsite');
     return anchor;
   }
 
@@ -470,16 +473,27 @@ class Chan {
       scrollbar-gutter: stable;
     }
 
-    .hgg2d__lewd__container {
+    .hgg2d__lewds__container {
       position: relative;
     }
 
-    .hgg2d__lewd__jumps {
+    .hgg2d__lewds__jumps {
       position: absolute;
       display: flex;
       flex-wrap: wrap;
       z-index: 1;
       width: 100%;
+    }
+
+    .hgg2d__lewds__site {
+      position: absolute;
+      bottom: 0px;
+      right: 0px;
+      color: black;
+      background-color: white;
+      padding-inline: 2px;
+      border: 1px solid black;
+      pointer-events: none;
     }
 
     .hgg2d__jump {
@@ -1115,7 +1129,7 @@ class Chan {
     if (fileflag && target.querySelector(`[id^="${href}" i]`))
       return;
     const codeContainer = this.codes.querySelector(`a[href="${href}" i]`)?.parentNode;
-    const lewdJumpContainer = this.lewds.querySelector(`a[href="${href}" i]`)?.parentNode.querySelector('.hgg2d__lewd__jumps');
+    const lewdJumpContainer = this.lewds.querySelector(`a[href="${href}" i]`)?.parentNode.querySelector('.hgg2d__lewds__jumps');
     const letter = fileflag ? 'F' : 'P';
     if (codeContainer) {
       const id = href + '__' + codeContainer.childElementCount;

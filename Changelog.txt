@@ -1,3 +1,15 @@
+Version 2.1.1
+= Features
+- Added support for ci-en previews
+  - Ci-en articles will preview the first embed image in the article post
+    Articles without images and creator pages will preview the creator's banner
+    The ci-en not found accorn is used as a fallback
+- Added site labels to grid previews
+= Bugfix
+- Fixed previews not displaying on desuarchive. They have a stricter CSP.
+- Fixed dlsite circle link generation, missing forward slash
+
+
 Version 2.1.0
 = New managment
 = Features
