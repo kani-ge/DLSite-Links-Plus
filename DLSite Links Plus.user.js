@@ -23,7 +23,7 @@
 class Chan {
   CIEN = /(?:(?:http[^>\s]+)?ci-en\.dlsite\.com\/creator\/(\d*)(?:\/article\/(\d*))?)/gi;
   DMMCode = /(?:(?:dmm|www|https?)[^>\s]+)?(?:cid=)?(?:d_|DMM)(\d{6})\/?/gi;
-  RGCirc = /(?:(?:http|www)?\S*com\S*)?[rv]g(\d{5})(?:\.html)?/gi;
+  RGCirc = /(?:(?:http|www)?\S*com\S*)?[rv]g(\d{5,8})(?:\.html)?/gi;
   RJCode = /(?:(?:http|www|dlsite)[^>\s]+)?[vr][je]((\d{3,5})\d{3})(?:\.html)?/gi;
 
   constructor() {
@@ -128,7 +128,7 @@ class Chan {
    * @param {string} link
    * @param {Function} fetchCallback
    */
-  addPreview(src, link, site, fetchCallback = this.fetchImg) {
+  addPreview(src, link, site) {
     const div = this.createElement('div', { class: 'hgg2d__lewds__container' });
     const anchor = this.createElement('a', { href: link, class: 'hgg2d__lewds__preview__link' });
     const img = this.createElement( this.embedPreview ? 'embed' : 'img', { class: 'hgg2d__lewds__preview' });
@@ -137,25 +137,51 @@ class Chan {
     div.appendChild(jumpCon);
     div.appendChild(anchor);
     div.appendChild(siteElem);
-    anchor.appendChild(img);
+    //anchor.appendChild(img);
     siteElem.textContent = site;
-    fetchCallback.apply(this, [src, div]);
+    //fetchCallback.apply(this, [src, div]);
+    this.fetchHandler(src, anchor, site);
     this.lewds.appendChild(div);
   }
 
   /**
    * addPreview helper function, do not call directly
    * @param {string} src
-   * @param {HTMLDivElement} div
-   * @param {Integer} errors
+   * @param {HTMLDivElement} anchor
+   * @param {string} site
    */
-  fetchImg(src, div, errors = 0) {
+  async fetchHandler(src, anchor, site) {
+    let success, img;
+    switch (site) {
+      case 'dlsite circle':
+        const imgGrid = this.createElement('div', { class: 'hgg2d__lewds__circle__grid' });
+        anchor.appendChild(imgGrid);
+        success = await this.fetchCircle(src, imgGrid);
+        break;
+      case 'ci-en':
+        img = this.createElement( this.embedPreview ? 'embed' : 'img', { class: 'hgg2d__lewds__preview' });
+        anchor.appendChild(img);
+        success = await this.fetchCIEN(src, img);
+        break;
+      default:
+        img = this.createElement( this.embedPreview ? 'embed' : 'img', { class: 'hgg2d__lewds__preview' });
+        anchor.appendChild(img);
+        success = await this.fetchImg(src, img, anchor);
+        break;
+    }
+    if (!success)
+      anchor.parentNode.remove();
+  }
+
+
+  async fetchImg(src, imgDiv, anchor = null, errors = 0) {
     const chan = this;
-    GM.xmlHttpRequest({
+    let result;
+    await GM.xmlHttpRequest({
       method: 'GET',
       responseType: 'blob',
       url: src,
-      onerror: function(response) { div.remove(); return; },
+      onerror: function(response) { result = false; },
       onload: function(response) {
         if (response.status != 200) {
           if (src.includes('dlsite') && errors < 1) {
@@ -172,29 +198,35 @@ class Chan {
             for (const threadLink of threadLinks) {
               threadLink.href = barCode.href;
             }
-            div.querySelector('.hgg2d__lewds__preview__link').href = barCode.href;
-            chan.fetchImg(src, div, 1);
+            if (anchor)
+              anchor.href = barCode.href;
+            result = chan.fetchImg(src, imgDiv, anchor, 1);
             return;
           }
-          div.remove();
+          result = false;
           return;
         }
         if (chan.dataPreview) {
           const reader = new FileReader();
-          reader.onload = (e) => { div.querySelector('.hgg2d__lewds__preview').src = e.target.result };
+          reader.onload = (e) => { imgDiv.src = e.target.result };
           reader.readAsDataURL(response.response);
         } else
-          div.querySelector('.hgg2d__lewds__preview').src = URL.createObjectURL(response.response);
+          imgDiv.src = URL.createObjectURL(response.response);
+        result = true;
+        return;
       },
-    }).catch((e) => { div.remove(); });
+    }).catch((e) => { result = false; });
+    await result;
+    return result;
   }
 
-  fetchCIEN(src, div) {
+  async fetchCIEN(src, imgDiv) {
     const chan = this;
-    GM.xmlHttpRequest({
+    let result = false;
+    await GM.xmlHttpRequest({
       method: 'GET',
       url: src,
-      onerror: function(response) { div.remove(); return; },
+      onerror: function(response) { result = false; },
       onload: function(response) {
         const parser = new DOMParser();
         const doc = parser.parseFromString(response.responseText, 'text/html');
@@ -202,9 +234,45 @@ class Chan {
         let img = doc.querySelector('.file-player-image');
         if (!img)
           img = doc.querySelector('.is-creatorHeading > .image');
-        chan.fetchImg(img ? img.getAttribute('src') : nut, div);
+        result = chan.fetchImg(img ? img.getAttribute('src') : nut, imgDiv, null);
       },
-    }).catch((e) => { div.remove(); });
+    }).catch((e) => { result = false; });
+    await result;
+    return result;
+  }
+
+  async fetchCircle(src, imgGrid) {
+    const chan = this;
+    let doc;
+    await GM.xmlHttpRequest({
+      method: 'GET',
+      url: src,
+      onerror: function(response) { doc = null; },
+      onload: function(response) {
+        const parser = new DOMParser();
+        doc = parser.parseFromString(response.responseText, 'text/html');
+      }
+    }).catch((e) => {doc = null});
+    const works = (doc.querySelectorAll('.sort_box + ._search_result_list .lazy'));
+    if (works.length == 0)
+      return false;
+    let complete = 0;
+    for (let i = 0; i < works.length; i++) {
+      const work = works[i];
+      const img = this.createElement( this.embedPreview ? 'embed' : 'img', { class: 'hgg2d__lewds__circle__preview' });
+      const result = await this.fetchImg(work.src, img);
+      if (result) {
+        imgGrid.appendChild(img);
+        complete++;
+      } else {
+        img.remove();
+      }
+      if (complete >= 4)
+        break;
+    }
+    if (complete == 0)
+      return false
+    return true;
   }
 
   /**
@@ -237,7 +305,7 @@ class Chan {
       return anchor;
     this.games.add(bar);
     this.addCode(anchor, bar);
-    this.addPreview(href, anchor.href, 'ci-en', this.fetchCIEN);
+    this.addPreview(href, anchor.href, 'ci-en');
     return anchor;
   }
 
@@ -252,6 +320,13 @@ class Chan {
     const href = `https://www.dlsite.com/${type}/circle/profile/=/maker_id/${prefix}${code}.html`;
     const anchor = this.createElement('a', { href });
     anchor.append(match);
+    const bar = `${prefix}${code}`;
+    if (this.games.has(bar)){
+      return anchor;
+    }
+    this.games.add(bar);
+    this.addCode(anchor, bar);
+    this.addPreview(href, href, 'dlsite circle');
     return anchor;
   }
 
@@ -503,11 +578,16 @@ class Chan {
       color: black;
     }
 
-    .hgg2d__lewds__preview {
+    .hgg2d__lewds__preview,
+    .hgg2d__lewds__circle__grid {
       display: block;
       width: 100%;
       filter: brightness(80%);
       pointer-events: none;
+    }
+
+    .hgg2d__lewds__circle__preview {
+      width: 50%;
     }
 
     .hgg2d__active,
