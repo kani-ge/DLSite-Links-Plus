@@ -8,6 +8,9 @@ Version 2.1.1
   - Previews are a 2x2 grid of circle's most recent 4 works
     Previews are restricted by the geoblock
 - Added site labels to grid previews
+- Hover preview works with cien and dlsite circle previews.
+= UI Changes
+- Added new settings to settings dailog
 = Bugfix
 - Fixed previews not displaying on desuarchive. They have a stricter CSP.
 - Fixed dlsite circle link generation, missing forward slash

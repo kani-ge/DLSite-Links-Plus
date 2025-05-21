@@ -68,14 +68,6 @@ class Chan {
     this.settingsBox = this.hgg2d__settings.querySelector('.hgg2d__settings');
     this.prev = this.addElement('img', document.body, { class: 'hgg2d__follow' });
     this.prev.style.visibility = 'hidden';
-    this.input_previewBar = this.hgg2d__settings.querySelector('.previewBar');
-    this.input_previewGrid = this.hgg2d__settings.querySelector('.previewGrid');
-    this.input_smoothScrolling = this.hgg2d__settings.querySelector('.smoothScrolling');
-    this.input_jumpLinks = this.hgg2d__settings.querySelector('.jumpLinks');
-    this.input_jumpLinksGrid = this.hgg2d__settings.querySelector('.jumpLinksGrid');
-    this.input_jumpLinksCodes = this.hgg2d__settings.querySelector('.jumpLinksCodes');
-    // initEventListeners must come after setting lewds, codes, lewdsToggle,
-    // settingsToggle, settingsBox, prev, input_previewBar, and input_previewGrid
     this.initEventListeners();
     this.toggle();
 
@@ -121,25 +113,20 @@ class Chan {
    * even when the grid is hidden. this allows us to take advantage of the error
    * checked images even for the fallback behavior of displaying previews near
    * the mouse.
-   * Image blobs are encoded as a data URI. This is to work around the img-src
-   * directive on b4k which allows data:. Wrapping images in iframes also works
-   * but chrome is gay and doesn't scale iframe content corretly.
    * @param {string} src
    * @param {string} link
-   * @param {Function} fetchCallback
+   * @param {string} site
    */
   addPreview(src, link, site) {
     const div = this.createElement('div', { class: 'hgg2d__lewds__container' });
     const anchor = this.createElement('a', { href: link, class: 'hgg2d__lewds__preview__link' });
     const img = this.createElement( this.embedPreview ? 'embed' : 'img', { class: 'hgg2d__lewds__preview' });
     const jumpCon = this.createElement('div', { class: 'hgg2d__lewds__jumps' });
-    const siteElem = this.createElement('span', { class: 'hgg2d__lewds__site' });
+    const siteElem = this.createElement('span', { class: `hgg2d__lewds__site ${this.settings.gridSiteLabels ? "" : 'hgg2d-hidden'}` });
     div.appendChild(jumpCon);
     div.appendChild(anchor);
     div.appendChild(siteElem);
-    //anchor.appendChild(img);
     siteElem.textContent = site;
-    //fetchCallback.apply(this, [src, div]);
     this.fetchHandler(src, anchor, site);
     this.lewds.appendChild(div);
   }
@@ -154,26 +141,37 @@ class Chan {
     let success, img;
     switch (site) {
       case 'dlsite circle':
-        const imgGrid = this.createElement('div', { class: 'hgg2d__lewds__circle__grid' });
+        const imgGrid = this.createElement('div', { class: 'hgg2d__lewds__circle__grid hgg2d__circle' });
+        if (!this.settings.gridCircle)
+          anchor.parentNode.classList.add('hgg2d-hidden');
         anchor.appendChild(imgGrid);
         success = await this.fetchCircle(src, imgGrid);
         break;
       case 'ci-en':
-        img = this.createElement( this.embedPreview ? 'embed' : 'img', { class: 'hgg2d__lewds__preview' });
+        img = this.createElement( this.embedPreview ? 'embed' : 'img', { class: 'hgg2d__lewds__preview hgg2d__ci-en' });
+        if (!this.settings.gridCIEN)
+          anchor.parentNode.classList.add('hgg2d-hidden');
         anchor.appendChild(img);
         success = await this.fetchCIEN(src, img);
         break;
-      default:
-        img = this.createElement( this.embedPreview ? 'embed' : 'img', { class: 'hgg2d__lewds__preview' });
+      case 'dlsite':
+        img = this.createElement( this.embedPreview ? 'embed' : 'img', { class: `hgg2d__lewds__preview ${'hgg2d__' + site}` });
+        if (!this.settings.gridDLSite)
+          anchor.parentNode.classList.add('hgg2d-hidden');
         anchor.appendChild(img);
         success = await this.fetchImg(src, img, anchor);
         break;
+      default:
+        success = false;
     }
     if (!success)
       anchor.parentNode.remove();
   }
 
-
+  /*
+   * this function handles fetching images as well as handling
+   * rjcodes that link to announce pages
+   */
   async fetchImg(src, imgDiv, anchor = null, errors = 0) {
     const chan = this;
     let result;
@@ -242,7 +240,6 @@ class Chan {
   }
 
   async fetchCircle(src, imgGrid) {
-    const chan = this;
     let doc;
     await GM.xmlHttpRequest({
       method: 'GET',
@@ -253,6 +250,8 @@ class Chan {
         doc = parser.parseFromString(response.responseText, 'text/html');
       }
     }).catch((e) => {doc = null});
+    if (!doc)
+      return false;
     const works = (doc.querySelectorAll('.sort_box + ._search_result_list .lazy'));
     if (works.length == 0)
       return false;
@@ -318,7 +317,7 @@ class Chan {
   createCirc(match, code) {
     const [type, prefix] = match.includes('RG') ? ['maniax', 'RG'] : ['pro', 'VG'];
     const href = `https://www.dlsite.com/${type}/circle/profile/=/maker_id/${prefix}${code}.html`;
-    const anchor = this.createElement('a', { href });
+    const anchor = this.createElement('a', { href: href , class: 'hgg2d__code hgg2d__circle__code'});
     anchor.append(match);
     const bar = `${prefix}${code}`;
     if (this.games.has(bar)){
@@ -618,6 +617,7 @@ class Chan {
       display: grid;
       gap: 0.5rem;
       grid-template-columns: repeat(2, 1fr) 4rem;
+      grid-area: matchs;
     }
 
     .hgg2d__blockForm {
@@ -638,10 +638,10 @@ class Chan {
 
     .hgg2d__settings {
       display: grid;
-      grid-template-columns: 1fr 2rem;
       grid-auto-rows: minmax(auto, min-content);
       grid-template-areas: 'title close'
-                           'settings settings'
+                           'settingsmain settingsgrid'
+                           'settingsjumps settingsgrid'
                            'matches matches'
                            'blocks blocks';
       position: fixed;
@@ -649,15 +649,23 @@ class Chan {
       left: 50vw;
       transform: translate(-50%, -50%);
       width: 30rem;
-      height: 20rem;
+      height: 25rem;
       padding: 0.5rem;
       background: var(--backgroundColor);
       color: var(--color);
       box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
     }
 
-    .hgg2d__settings-bars {
-      grid-area: settings;
+    .hgg2d__settings__main {
+      grid-area: settingsmain;
+    }
+
+    .hgg2d__settings__jumps {
+      grid-area: settingsjumps;
+    }
+
+    .hgg2d__settings__grid {
+      grid-area: settingsgrid;
     }
 
     .hgg2d__settings-close {
@@ -750,10 +758,10 @@ class Chan {
       <div class='navLinks desktop hgg2d__navLinks'></div>
       <div class='hgg2d__toggles'>
         <div class="hgg2d__lewdsToggle">
-          <a>${this.settings.previewGrid ? 'grid' : 'no grid'}</a>
+          <a>${this.settings.previewGrid ? 'hide grid' : 'show grid'}</a>
         </div>
         <div class='hgg2d__jumpLinksToggle'>
-          <a>${this.settings.jumpLinks ? 'jumps' : 'no jumps'}</a>
+          <a>${this.settings.jumpLinks ? 'hide jumps' : 'show jumps'}</a>
         </div>
       </div>
       <main class="hgg2d__lewds ${this.settings.previewGrid ? '' : 'hgg2d__nogrid'}">
@@ -765,7 +773,8 @@ class Chan {
     this.hgg2d__settings.innerHTML = (`
       <span class="hgg2d__settings-header">Quicklinks Settings:</span>
       <a class="hgg2d__settings-close">[x]</a>
-      <div class="hgg2d__settings-bars">
+      <div class="hgg2d__settings__main">
+        <span class="hgg2d__settings__main__header">Main Settings:</span>
         <div>
           <input type="checkbox" ${this.settings.previewBar ? 'checked' : ''} class="previewBar">Show Preview Bar</input>
         </div>
@@ -773,16 +782,34 @@ class Chan {
           <span>>></span><input type="checkbox" ${this.settings.previewGrid ? 'checked' : ''} class="previewGrid">Show Preview Grid</input>
         </div>
         <div>
-          <span>>></span><input type="checkbox" ${this.settings.jumpLinks ? 'checked' : ''} class="jumpLinks">Show Post Jumps</input>
-        </div>
-        <div>
-          <span>>>>></span><input type="checkbox" ${this.settings.jumpLinksGrid ? 'checked' : ''} class="jumpLinksGrid">Show Post Jumps In Grid</input>
-        </div>
-        <div>
-          <span>>>>></span><input type="checkbox" ${this.settings.jumpLinksCodes ? 'checked' : ''} class="jumpLinksCodes">Show Post Jumps In Code List</input>
-        </div>
-        <div>
           <input type="checkbox" ${this.settings.smoothScrolling ? 'checked' : ''} class="smoothScrolling">Smoothscrolling</input>
+        </div>
+      </div>
+      <div class="hgg2d__settings__jumps">
+        <span class="hgg2d__settings__jumps__header">Jump to Post Settings:</span>
+        <div>
+          <span></span><input type="checkbox" ${this.settings.jumpLinks ? 'checked' : ''} class="jumpLinks">Show Post Jumps</input>
+        </div>
+        <div>
+          <span>>></span><input type="checkbox" ${this.settings.jumpLinksGrid ? 'checked' : ''} class="jumpLinksGrid">Show Post Jumps In Grid</input>
+        </div>
+        <div>
+          <span>>></span><input type="checkbox" ${this.settings.jumpLinksCodes ? 'checked' : ''} class="jumpLinksCodes">Show Post Jumps In Code List</input>
+        </div>
+      </div>
+      <div class="hgg2d__settings__grid">
+        <span class="hgg2d__settings__grid__header">Preview Grid Settings:</span>
+        <div>
+          <span></span><input type="checkbox" ${this.settings.gridDLSite ? 'checked' : ''} class="gridDLSite">Include dlsite games</input>
+        </div>
+        <div>
+          <span></span><input type="checkbox" ${this.settings.gridCircle ? 'checked' : ''} class="gridCircle">Include dlsite circles</input>
+        </div>
+        <div>
+          <span></span><input type="checkbox" ${this.settings.gridCIEN ? 'checked' : ''} class="gridCIEN">Include ci-en Blogs</input>
+        </div>
+        <div>
+          <span></span><input type="checkbox" ${this.settings.gridSiteLabels ? 'checked' : ''} class="gridSiteLabels">Show site labels</input>
         </div>
       </div>
       <div class="hgg2d__matchForm">
@@ -853,56 +880,16 @@ class Chan {
       this.hgg2d__settings.classList.toggle('hgg2d-hidden');
     });
 
-    this.input_previewBar.addEventListener('change', (e) => {
-      this.settings.previewBar = e.target.checked;
-      if (this.settings.previewBar) {
-        this.hgg2d.classList.remove('hgg2d-hidden');
-      } else {
-        this.hgg2d.classList.add('hgg2d-hidden');
-      }
-    });
-
-    this.input_previewGrid.addEventListener('change', (e) => {
-      this.settings.previewGrid = e.target.checked;
-      if (this.settings.previewGrid) {
-        this.lewds.classList.remove('hgg2d__nogrid');
-      } else {
-        this.lewds.classList.add('hgg2d__nogrid');
-      }
-      this.gridToggle.textContent = this.settings.previewGrid ? 'grid' : 'no grid';
-    });
-
-    this.input_smoothScrolling.addEventListener('change', (e) => {
-      this.settings.smoothScrolling = e.target.checked;
-    });
-
-    this.input_jumpLinks.addEventListener('change', (e) => {
-      this.settings.jumpLinks = e.target.checked;
-      this.toggleJumpLinksGrid();
-      this.toggleJumpLinksCodes();
-      this.jumpLinksToggle.textContent = this.settings.jumpLinks ? 'jumps' : 'no jumps';
-    });
-
-    this.input_jumpLinksGrid.addEventListener('change', (e) => {
-      this.settings.jumpLinksGrid = e.target.checked;
-      this.toggleJumpLinksGrid();
-    });
-
-    this.input_jumpLinksCodes.addEventListener('change', (e) => {
-      this.settings.jumpLinksCodes = e.target.checked;
-      this.toggleJumpLinksCodes();
-    });
-
     this.jumpLinksToggle.addEventListener('click', () => {
-      this.settings.jumpLinks = this.jumpLinksToggle.textContent === 'no jumps';
-      this.jumpLinksToggle.textContent = this.settings.jumpLinks ? 'jumps' : 'no jumps';
+      this.settings.jumpLinks = this.jumpLinksToggle.textContent === 'show jumps';
+      this.jumpLinksToggle.textContent = this.settings.jumpLinks ? 'hide jumps' : 'show jumps';
       this.toggleJumpLinksGrid();
       this.toggleJumpLinksCodes();
     });
 
     this.gridToggle.addEventListener('click', () => {
-      this.settings.previewGrid = this.gridToggle.textContent === 'no grid';
-      this.gridToggle.textContent = this.settings.previewGrid ? 'grid' : 'no grid';
+      this.settings.previewGrid = this.gridToggle.textContent === 'show grid';
+      this.gridToggle.textContent = this.settings.previewGrid ? 'hide grid' : 'show grid';
       if (this.settings.previewGrid) {
         this.lewds.classList.remove('hgg2d__nogrid');
       } else {
@@ -944,6 +931,8 @@ class Chan {
       }
     });
 
+    this.initCheckboxListerners();
+
     let ticking = false;
     /** @type {FrameRequestCallback} */
     const positionRecalc = () => {
@@ -979,6 +968,80 @@ class Chan {
     positionRecalc();
   }
 
+  initCheckboxListerners() {
+    this.hgg2d__settings.querySelector('.previewBar').addEventListener('change', (e) => {
+      this.settings.previewBar = e.target.checked;
+      if (this.settings.previewBar) {
+        this.hgg2d.classList.remove('hgg2d-hidden');
+      } else {
+        this.hgg2d.classList.add('hgg2d-hidden');
+      }
+    });
+
+    this.hgg2d__settings.querySelector('.previewGrid').addEventListener('change', (e) => {
+      this.settings.previewGrid = e.target.checked;
+      if (this.settings.previewGrid) {
+        this.lewds.classList.remove('hgg2d__nogrid');
+      } else {
+        this.lewds.classList.add('hgg2d__nogrid');
+      }
+      this.gridToggle.textContent = this.settings.previewGrid ? 'hide grid' : 'show grid';
+    });
+
+    this.hgg2d__settings.querySelector('.smoothScrolling').addEventListener('change', (e) => {
+      this.settings.smoothScrolling = e.target.checked;
+    });
+
+    this.hgg2d__settings.querySelector('.jumpLinks').addEventListener('change', (e) => {
+      this.settings.jumpLinks = e.target.checked;
+      this.toggleJumpLinksGrid();
+      this.toggleJumpLinksCodes();
+      this.jumpLinksToggle.textContent = this.settings.jumpLinks ? 'hide jumps' : 'show jumps';
+    });
+
+    this.hgg2d__settings.querySelector('.jumpLinksGrid').addEventListener('change', (e) => {
+      this.settings.jumpLinksGrid = e.target.checked;
+      this.toggleJumpLinksGrid();
+    });
+
+    this.hgg2d__settings.querySelector('.jumpLinksCodes').addEventListener('change', (e) => {
+      this.settings.jumpLinksCodes = e.target.checked;
+      this.toggleJumpLinksCodes();
+    });
+
+    this.hgg2d__settings.querySelector('.gridDLSite').addEventListener('change', (e) => {
+      this.settings.gridDLSite = e.target.checked;
+      if (this.settings.gridDLSite)
+        this.hgg2d.querySelectorAll('.hgg2d__dlsite').forEach(el => el.parentNode.parentNode.classList.remove('hgg2d-hidden'));
+      else
+        this.hgg2d.querySelectorAll('.hgg2d__dlsite').forEach(el => el.parentNode.parentNode.classList.add('hgg2d-hidden'));
+    });
+
+    this.hgg2d__settings.querySelector('.gridCircle').addEventListener('change', (e) => {
+      this.settings.gridCircle = e.target.checked;
+      if (this.settings.gridCircle)
+        this.hgg2d.querySelectorAll('.hgg2d__circle').forEach(el => el.parentNode.parentNode.classList.remove('hgg2d-hidden'));
+      else
+        this.hgg2d.querySelectorAll('.hgg2d__circle').forEach(el => el.parentNode.parentNode.classList.add('hgg2d-hidden'));
+    });
+
+    this.hgg2d__settings.querySelector('.gridCIEN').addEventListener('change', (e) => {
+      this.settings.gridCIEN = e.target.checked;
+      if (this.settings.gridCIEN)
+        this.hgg2d.querySelectorAll('.hgg2d__ci-en').forEach(el => el.parentNode.parentNode.classList.remove('hgg2d-hidden'));
+      else
+        this.hgg2d.querySelectorAll('.hgg2d__ci-en').forEach(el => el.parentNode.parentNode.classList.add('hgg2d-hidden'));
+    });
+
+    this.hgg2d__settings.querySelector('.gridSiteLabels').addEventListener('change', (e) => {
+      this.settings.gridSiteLabels = e.target.checked;
+      if (this.settings.gridSiteLabels)
+        this.hgg2d.querySelectorAll('.hgg2d__lewds__site').forEach(el => el.classList.remove('hgg2d-hidden'));
+      else
+        this.hgg2d.querySelectorAll('.hgg2d__lewds__site').forEach(el => el.classList.add('hgg2d-hidden'));
+    });
+  }
+
   toggleJumpLinksGrid() {
     if (this.settings.jumpLinksGrid && this.settings.jumpLinks) {
       this.hgg2d.querySelectorAll('.hgg2d__jump__grid').forEach(el => el.classList.remove('hgg2d-hidden'));
@@ -1010,6 +1073,10 @@ class Chan {
       jumpLinks: true,
       jumpLinksCodes: true,
       jumpLinksGrid: true,
+      gridDLSite: true,
+      gridCIEN: true,
+      gridCircle: true,
+      gridSiteLabels: true,
       blocks: [],
     };
     /**
@@ -1021,6 +1088,10 @@ class Chan {
      *    jumpLinks: boolean,
      *    jumpLinksCodes: boolean,
      *    jumpLinksGrid: boolean,
+     *    gridDLSite: boolean,
+     *    gridCIEN: boolean,
+     *    gridCircle: boolean,
+     *    gridSiteLabels: boolean,
      *    smoothScrolling: boolean,
      *    blocks: string[]
      * }}
@@ -1047,15 +1118,13 @@ class Chan {
         obj[prop] = value;
         switch (prop) {
           case 'previewGrid':
-            this.input_previewGrid.checked = value;
+            this.hgg2d__settings.querySelector('.previewGrid').checked = value;
             break;
           case 'previewBar':
-            this.input_previewBar.checked = value;
-            this.toggle();
+            this.hgg2d__settings.querySelector('.previewBar').checked = value;
             break;
           case 'jumpLinks':
-            this.input_jumpLinks.checked = value;
-            this.toggleJumps();
+            this.hgg2d__settings.querySelector('.jumpLinks').checked = value;
             break;
         }
         localStorage.setItem('hgg2d', JSON.stringify(target));
@@ -1069,26 +1138,11 @@ class Chan {
   toggle() {
     if (this.settings.previewBar) {
       this.hgg2d.classList.remove('hgg2d-hidden');
-      this.input_previewGrid.removeAttribute('disabled');
-      this.input_jumpLinks.removeAttribute('disabled');
-      this.toggleJumps();
     } else {
       this.hgg2d.classList.add('hgg2d-hidden');
-      this.input_previewGrid.setAttribute('disabled', ' ');
-      this.input_jumpLinks.setAttribute('disabled', ' ');
-      this.toggleJumps();
     }
   }
 
-  toggleJumps() {
-    if (this.settings.previewBar && this.settings.jumpLinks) {
-      this.input_jumpLinksGrid.removeAttribute('disabled');
-      this.input_jumpLinksCodes.removeAttribute('disabled');
-    } else {
-      this.input_jumpLinksGrid.setAttribute('disabled', ' ');
-      this.input_jumpLinksCodes.setAttribute('disabled', ' ');
-    }
-  }
 
   /**
    * @param {HTMLElement} node
@@ -1138,13 +1192,15 @@ class Chan {
     }
     return node;
   }
-
   /** @param {HTMLAnchorElement} */
   getEventImg (target) {
     let img;
     if (target.href.includes('ci-en')) {
       const code = target.href.match(/creator\S*/)[0];
       img = this.lewds.querySelector(`a[href$="${code}" i]`).firstChild;
+    } else if (target.href.includes('circle/profile')) {
+      const code = target.href.match(/[RV]G\d{5,8}/)[0];
+      img = this.lewds.querySelector(`a[href*="${code}" i]`).firstChild;
     } else if (target.href.includes('dlsite')) {
       const code = target.href.match(/[RV][JE](\d{2})?\d{6}/)[0];
       img = this.lewds.querySelector(`a[href*="${code}" i]`).firstChild;
@@ -1170,7 +1226,14 @@ class Chan {
       return;
     }
     const rect = target.getBoundingClientRect();
-    this.prev.src = img.src;
+    if (img.tagName == 'DIV') {
+      this.tmpPrev = this.prev;
+      this.prev = img.cloneNode(true);
+      this.prev.classList.add('hgg2d__follow');
+      document.body.appendChild(this.prev);
+    } else {
+      this.prev.src = img.src;
+    }
     this.prev.style.visibility = '';
     this.prev.style.top = ((window.innerHeight - rect.top < 420) ? window.innerHeight - 435 : rect.top - 15) + 'px';
     this.prev.style.left = ((window.innerWidth - rect.left < 560) ? rect.left - 565 : rect.right + 5) + 'px';
@@ -1189,8 +1252,13 @@ class Chan {
       img.classList.remove('hgg2d__active');
       return;
     }
+    if (this.prev.tagName == 'DIV') {
+      this.prev.remove();
+      this.prev = this.tmpPrev;
+    } else {
+      this.prev.src = '';
+    }
     this.prev.style.visibility = 'hidden';
-    this.prev.src = '';
   };
 
   /** @param {MouseEvent} e */
