@@ -13,7 +13,7 @@
 // @match       *://thebarchive.com/*/thread/*
 // @match       *://warosu.org/*/thread/*
 // @version     2.1.1
-// @description Provide links from RJ, RE, VJ, DMM, VG and RG codes.
+// @description Provide links and previews for RJ, RE, VJ, DMM, VG, and RG codes as well as ci-en blogs.
 // @icon        data:image/png;base64,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
 // @downloadURL https://github.com/kani-ge/DLSite-Links-Plus/raw/master/DLSite%20Links%20Plus.user.js
 // @updateURL   https://github.com/kani-ge/DLSite-Links-Plus/raw/master/DLSite%20Links%20Plus.user.js
@@ -155,8 +155,11 @@ class Chan {
         success = await this.fetchCIEN(src, img);
         break;
       case 'dlsite':
+      case 'dmm':
         img = this.createElement( this.embedPreview ? 'embed' : 'img', { class: `hgg2d__lewds__preview ${'hgg2d__' + site}` });
-        if (!this.settings.gridDLSite)
+        if ( site == 'dlsite' && !this.settings.gridDLSite )
+          anchor.parentNode.classList.add('hgg2d-hidden');
+        if ( site == 'dmm' && !this.settings.gridDMM )
           anchor.parentNode.classList.add('hgg2d-hidden');
         anchor.appendChild(img);
         success = await this.fetchImg(src, img, anchor);
@@ -253,13 +256,12 @@ class Chan {
     if (!doc)
       return false;
     const works = (doc.querySelectorAll('.sort_box + ._search_result_list .lazy'));
-    if (works.length == 0)
-      return false;
     let complete = 0;
     for (let i = 0; i < works.length; i++) {
       const work = works[i];
       const img = this.createElement( this.embedPreview ? 'embed' : 'img', { class: 'hgg2d__lewds__circle__preview' });
       const result = await this.fetchImg(work.src, img);
+      await result;
       if (result) {
         imgGrid.appendChild(img);
         complete++;
@@ -269,8 +271,18 @@ class Chan {
       if (complete >= 4)
         break;
     }
-    if (complete == 0)
-      return false
+    if (complete == 0) {
+      const img = this.createElement( this.embedPreview ? 'embed' : 'img', { class: 'hgg2d__lewds__preview' });
+      const result = await this.fetchImg('https://www.dlsite.com/images/web/common/logo/pc/logo-dlsite-r18.png', img);
+      await result;
+      if (!result)
+        return false;
+      imgGrid.appendChild(img);
+    }
+    if (complete == 1) {
+      imgGrid.firstChild.classList.remove('hgg2d__lewds__circle__preview');
+      imgGrid.firstChild.classList.add('hgg2d__lewds__preview');
+    }
     return true;
   }
 
@@ -298,7 +310,7 @@ class Chan {
    */
   createCien(href, creator, article) {
     const anchor = this.createElement('a', { class: 'hgg2d__code hgg2d__cien__code', href });
-    const bar = 'C' + creator + (article ? ('/' + article) : '');
+    const bar = 'C' + creator + (article ? ('/A' + article) : '');
     anchor.append(href);
     if (this.games.has(bar))
       return anchor;
@@ -337,7 +349,7 @@ class Chan {
    */
   createDMM(match, code) {
     this.DMMCode.lastIndex = 0;
-    const anchor = this.createElement('a', { href: `https://www.dmm.co.jp/dc/doujin/-/detail/=/cid=d_${code}/`, class: 'hgg2d__code' });
+    const anchor = this.createElement('a', { href: `https://www.dmm.co.jp/dc/doujin/-/detail/=/cid=d_${code}/`, class: 'hgg2d__code hgg2d__dmm__code' });
     const src = `https://doujin-assets.dmm.co.jp/digital/game/d_${code}/d_${code}pr.jpg`;
     const bar = `DMM${code}`;
     anchor.append(match);
@@ -529,13 +541,13 @@ class Chan {
 
     .hgg2d__code {
       padding-right: 4px;
-      width: 59%;
+      width: 5rem;
     }
 
     .hgg2d__cien__code {
       overflow: hidden;
       text-overflow: ellipsis;
-      width: 59%;
+      text-wrap: nowrap;
     }
 
     .hgg2d__lewds {
@@ -557,6 +569,7 @@ class Chan {
       flex-wrap: wrap;
       z-index: 1;
       width: 100%;
+      pointer-events: none;
     }
 
     .hgg2d__lewds__site {
@@ -575,6 +588,7 @@ class Chan {
       padding-inline: 2px;
       background-color: white;
       color: black;
+      pointer-events: all;
     }
 
     .hgg2d__lewds__preview,
@@ -809,6 +823,9 @@ class Chan {
           <span></span><input type="checkbox" ${this.settings.gridCIEN ? 'checked' : ''} class="gridCIEN">Include ci-en Blogs</input>
         </div>
         <div>
+          <span></span><input type="checkbox" ${this.settings.gridDMM ? 'checked' : ''} class="gridDMM">Include dmm games</input>
+        </div>
+        <div>
           <span></span><input type="checkbox" ${this.settings.gridSiteLabels ? 'checked' : ''} class="gridSiteLabels">Show site labels</input>
         </div>
       </div>
@@ -1033,6 +1050,14 @@ class Chan {
         this.hgg2d.querySelectorAll('.hgg2d__ci-en').forEach(el => el.parentNode.parentNode.classList.add('hgg2d-hidden'));
     });
 
+    this.hgg2d__settings.querySelector('.gridDMM').addEventListener('change', (e) => {
+      this.settings.gridDMM = e.target.checked;
+      if (this.settings.gridCIEN)
+        this.hgg2d.querySelectorAll('.hgg2d__dmm').forEach(el => el.parentNode.parentNode.classList.remove('hgg2d-hidden'));
+      else
+        this.hgg2d.querySelectorAll('.hgg2d__dmm').forEach(el => el.parentNode.parentNode.classList.add('hgg2d-hidden'));
+    });
+
     this.hgg2d__settings.querySelector('.gridSiteLabels').addEventListener('change', (e) => {
       this.settings.gridSiteLabels = e.target.checked;
       if (this.settings.gridSiteLabels)
@@ -1076,6 +1101,7 @@ class Chan {
       gridDLSite: true,
       gridCIEN: true,
       gridCircle: true,
+      gridDMM: true,
       gridSiteLabels: true,
       blocks: [],
     };
@@ -1091,6 +1117,7 @@ class Chan {
      *    gridDLSite: boolean,
      *    gridCIEN: boolean,
      *    gridCircle: boolean,
+     *    gridDMM: boolean,
      *    gridSiteLabels: boolean,
      *    smoothScrolling: boolean,
      *    blocks: string[]
