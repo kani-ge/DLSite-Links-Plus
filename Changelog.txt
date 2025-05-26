@@ -6,11 +6,16 @@ Version 2.1.1
     The ci-en not found accorn is used as a fallback
 - Added support for dlsite circle previews
   - Previews are a 2x2 grid of circle's most recent 4 works
-    Previews are restricted by the geoblock
+    or a single image if they have a single work or
+    the site logo for zero works
+    Previews are restricted by the geoblock so results may vary
+    Tunneled traffic to dlsite will work with this script
+- Added support for steam
+  - Works with full links and bin style S[digits] codes
 - Added site labels to grid previews
 - Hover preview works with cien and dlsite circle previews.
 = UI Changes
-- Added new settings to settings dailog
+- Added new settings to settings dailog to toggle active sites
 = Bugfix
 - Fixed previews not displaying on desuarchive. They have a stricter CSP.
 - Fixed dlsite circle link generation, missing forward slash

@@ -25,6 +25,7 @@ class Chan {
   DMMCode = /(?:(?:dmm|www|https?)[^>\s]+)?(?:cid=)?(?:d_|DMM)(\d{6})\/?/gi;
   RGCirc = /(?:(?:http|www)?\S*com\S*)?[rv]g(\d{5,8})(?:\.html)?/gi;
   RJCode = /(?:(?:http|www|dlsite)[^>\s]+)?[vr][je]((\d{3,5})\d{3})(?:\.html)?/gi;
+  SteamCode = /(?:(?:https?[^>\s]+)?store\.steampowered\.com\/app\/|\ss|^s)(\d+)(?:[^>\s]+)?/gi;
 
   constructor() {
     switch(location.hostname) {
@@ -161,8 +162,17 @@ class Chan {
           anchor.parentNode.classList.add('hgg2d-hidden');
         if ( site == 'dmm' && !this.settings.gridDMM )
           anchor.parentNode.classList.add('hgg2d-hidden');
+        //if ( site == 'steam' && !this.settings.gridSteam )
+          //anchor.parentNode.classList.add('hgg2d-hidden');
         anchor.appendChild(img);
         success = await this.fetchImg(src, img, anchor);
+        break;
+      case 'steam':
+        img = this.createElement( this.embedPreview ? 'embed' : 'img', { class: 'hgg2d__lewds__preview hgg2d__steam' });
+        //if (!this.settings.gridSteam)
+          //anchor.parentNode.classList.add('hgg2d-hidden');
+        anchor.appendChild(img);
+        success = await this.fetchSteam(src, img);
         break;
       default:
         success = false;
@@ -185,6 +195,8 @@ class Chan {
       onerror: function(response) { result = false; },
       onload: function(response) {
         if (response.status != 200) {
+          console.log(src);
+          console.log(response.status);
           if (src.includes('dlsite') && errors < 1) {
             let code = src.match(/[RV][JE](\d{2})?\d{6}/g)[1];
             const barCode = chan.codes.querySelector(`a[href*="${code}" i]`);
@@ -235,7 +247,7 @@ class Chan {
         let img = doc.querySelector('.file-player-image');
         if (!img)
           img = doc.querySelector('.is-creatorHeading > .image');
-        result = chan.fetchImg(img ? img.getAttribute('src') : nut, imgDiv, null);
+        result = chan.fetchImg(img ? img.getAttribute('src') : nut, imgDiv);
       },
     }).catch((e) => { result = false; });
     await result;
@@ -286,6 +298,26 @@ class Chan {
     return true;
   }
 
+  async fetchSteam(code, imgDiv) {
+    const chan = this;
+    const app = `https://store.steampowered.com/api/appdetails?appids=${code}`;
+    let result = false;
+    await GM.xmlHttpRequest({
+      method: 'GET',
+      url: app,
+      onerror: function(response) { result = false; },
+      onload: function(response) {
+        const details = JSON.parse(response.response);
+        const header = details[code]['data']['header_image'];
+        if (!header)
+          return false;
+        result = chan.fetchImg(header, imgDiv);
+      },
+    }).catch((e) => { result = false; });
+    await result;
+    return result;
+  }
+
   /**
    * @param {unknown[]} first
    * @param {unknown[]} second
@@ -303,6 +335,14 @@ class Chan {
     return true;
   }
 
+  barCheck(bar, anchor) {
+    if (this.games.has(bar))
+      return true;
+    this.games.add(bar);
+    this.addCode(anchor, bar);
+    return false;
+  }
+
   /**
    * create methods should not be called directly
    * @param {string} href
@@ -312,10 +352,8 @@ class Chan {
     const anchor = this.createElement('a', { class: 'hgg2d__code hgg2d__cien__code', href });
     const bar = 'C' + creator + (article ? ('/A' + article) : '');
     anchor.append(href);
-    if (this.games.has(bar))
+    if (this.barCheck(bar, anchor))
       return anchor;
-    this.games.add(bar);
-    this.addCode(anchor, bar);
     this.addPreview(href, anchor.href, 'ci-en');
     return anchor;
   }
@@ -332,11 +370,8 @@ class Chan {
     const anchor = this.createElement('a', { href: href , class: 'hgg2d__code hgg2d__circle__code'});
     anchor.append(match);
     const bar = `${prefix}${code}`;
-    if (this.games.has(bar)){
+    if (this.barCheck(bar, anchor))
       return anchor;
-    }
-    this.games.add(bar);
-    this.addCode(anchor, bar);
     this.addPreview(href, href, 'dlsite circle');
     return anchor;
   }
@@ -353,11 +388,8 @@ class Chan {
     const src = `https://doujin-assets.dmm.co.jp/digital/game/d_${code}/d_${code}pr.jpg`;
     const bar = `DMM${code}`;
     anchor.append(match);
-    if (this.games.has(bar)) {
+    if (this.barCheck(bar, anchor))
       return anchor;
-    }
-    this.games.add(bar);
-    this.addCode(anchor, bar);
     this.addPreview(src, anchor.href, 'dmm');
     return anchor;
   }
@@ -378,16 +410,26 @@ class Chan {
     const anchor = this.createElement('a', { class: 'hgg2d__code', href });
     anchor.append(match);
     const bar = `${match.includes('RE') ? 'RE' : prefix}${code}`;
-    if (this.games.has(bar)) {
+    if (this.barCheck(bar, anchor))
       return anchor;
-    }
-    this.games.add(bar);
-    this.addCode(anchor, bar);
     const round = String(Number(bucket) % 1000 || Number(bucket) === 0 ? Number(bucket) + 1 : Number(bucket)).padStart(bucket.length, '0');
     const pathType = type === 'work' ? 'work' : 'ana';
     const circlePathType = circleType === 'pro' ? 'professional' : 'doujin';
     const src = `https://img.dlsite.jp/modpub/images2/${pathType}/${circlePathType}/${prefix}${round}000/${prefix}${code}${pathType === 'ana' ? '_ana' : ''}_img_main.jpg`;
     this.addPreview(src, anchor.href, 'dlsite');
+    return anchor;
+  }
+
+  createSteam(match, code) {
+    this.SteamCode.lastIndex = 0;
+    const anchor = this.createElement('a', { href: `https://store.steampowered.com/app/${code}/`, class: 'hgg2d__code hgg2d__steam__code' });
+    //const src = `https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/${code}/`;
+    const bar = `S${code}`;
+    anchor.append(match);
+    if (this.barCheck(bar, anchor))
+      return anchor;
+    //this.fetchCIEN(anchor.href, null);
+    this.addPreview(code, anchor.href, 'steam');
     return anchor;
   }
 
@@ -588,7 +630,7 @@ class Chan {
       padding-inline: 2px;
       background-color: white;
       color: black;
-      pointer-events: all;
+      pointer-events: auto;
     }
 
     .hgg2d__lewds__preview,
@@ -611,8 +653,8 @@ class Chan {
     .hgg2d__follow {
       display: block;
       position: fixed;
-      width: 560px;
-      aspect-ratio: 4/3;
+      max-width: 560px;
+      max-height: 50vh;
       top: 0;
       padding: 0;
       margin: 0;
@@ -1342,6 +1384,7 @@ class Chan {
     this.matchText(node, this.DMMCode, (match, code) => this.createDMM(match, code));
     this.matchText(node, this.RGCirc, (match, code) => this.createCirc(match, code));
     this.matchText(node, this.RJCode, (match, code, bucket) => this.createRJ(match, code, bucket));
+    this.matchText(node, this.SteamCode, (match, code) => this.createSteam(match, code));
     this.matchSearches(node);
   }
 }
