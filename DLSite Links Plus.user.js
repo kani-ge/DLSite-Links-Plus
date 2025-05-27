@@ -13,7 +13,7 @@
 // @match       *://thebarchive.com/*/thread/*
 // @match       *://warosu.org/*/thread/*
 // @version     2.1.1
-// @description Provide links and previews for RJ, RE, VJ, DMM, VG, and RG codes as well as ci-en blogs.
+// @description Provide links and previews for RJ, RE, VJ, DMM, VG, and RG codes, ci-en blogs, steam, and vndb
 // @icon        data:image/png;base64,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
 // @downloadURL https://github.com/kani-ge/DLSite-Links-Plus/raw/master/DLSite%20Links%20Plus.user.js
 // @updateURL   https://github.com/kani-ge/DLSite-Links-Plus/raw/master/DLSite%20Links%20Plus.user.js
@@ -25,7 +25,8 @@ class Chan {
   DMMCode = /(?:(?:dmm|www|https?)[^>\s]+)?(?:cid=)?(?:d_|DMM)(\d{6})\/?/gi;
   RGCirc = /(?:(?:http|www)?\S*com\S*)?[rv]g(\d{5,8})(?:\.html)?/gi;
   RJCode = /(?:(?:http|www|dlsite)[^>\s]+)?[vr][je]((\d{3,5})\d{3})(?:\.html)?/gi;
-  SteamCode = /(?:(?:https?[^>\s]+)?store\.steampowered\.com\/app\/|\ss|^s)(\d+)(?:[^>\s]+)?/gi;
+  Steam = /(?:(?:https?[^>\s]+)?store\.steampowered\.com\/app\/|\ss|^s)(\d+)(?:[^>\s]+)?/gi;
+  VNDB = /(?:(?:[^>\s]+)?vndb.org\/|\s|^)(v\d+)/gi;
 
   constructor() {
     switch(location.hostname) {
@@ -162,8 +163,6 @@ class Chan {
           anchor.parentNode.classList.add('hgg2d-hidden');
         if ( site == 'dmm' && !this.settings.gridDMM )
           anchor.parentNode.classList.add('hgg2d-hidden');
-        //if ( site == 'steam' && !this.settings.gridSteam )
-          //anchor.parentNode.classList.add('hgg2d-hidden');
         anchor.appendChild(img);
         success = await this.fetchImg(src, img, anchor);
         break;
@@ -173,6 +172,13 @@ class Chan {
           //anchor.parentNode.classList.add('hgg2d-hidden');
         anchor.appendChild(img);
         success = await this.fetchSteam(src, img);
+        break;
+      case 'vndb':
+        img = this.createElement( this.embedPreview ? 'embed' : 'img', { class: 'hgg2d__lewds__preview hgg2d__vndb' });
+        //if (!this.settings.gridVNDB)
+          //anchor.parentNode.classList.add('hgg2d-hidden');
+        anchor.appendChild(img);
+        success = await this.fetchVNDB(src, img);
         break;
       default:
         success = false;
@@ -195,8 +201,6 @@ class Chan {
       onerror: function(response) { result = false; },
       onload: function(response) {
         if (response.status != 200) {
-          console.log(src);
-          console.log(response.status);
           if (src.includes('dlsite') && errors < 1) {
             let code = src.match(/[RV][JE](\d{2})?\d{6}/g)[1];
             const barCode = chan.codes.querySelector(`a[href*="${code}" i]`);
@@ -318,6 +322,29 @@ class Chan {
     return result;
   }
 
+  async fetchVNDB(src, imgDiv) {
+    const chan = this;
+    let result;
+    await GM.xmlHttpRequest({
+      method: 'POST',
+      url: 'https://api.vndb.org/kana/vn',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      data: `{
+        "filters": ["id", "=", "${src.substring(1)}"],
+        "fields": "title, image.thumbnail"
+      }`,
+      onerror: function(response) { doc = null; },
+      onload: function(response) {
+        const img = JSON.parse(response.response)['results'][0]['image']['thumbnail'];
+        result = chan.fetchImg(img, imgDiv);
+      }
+    }).catch((e) => {doc = null});
+    await result;
+    return result;
+  }
+
   /**
    * @param {unknown[]} first
    * @param {unknown[]} second
@@ -421,15 +448,25 @@ class Chan {
   }
 
   createSteam(match, code) {
-    this.SteamCode.lastIndex = 0;
+    this.Steam.lastIndex = 0;
     const anchor = this.createElement('a', { href: `https://store.steampowered.com/app/${code}/`, class: 'hgg2d__code hgg2d__steam__code' });
-    //const src = `https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/${code}/`;
     const bar = `S${code}`;
     anchor.append(match);
     if (this.barCheck(bar, anchor))
       return anchor;
-    //this.fetchCIEN(anchor.href, null);
     this.addPreview(code, anchor.href, 'steam');
+    return anchor;
+  }
+
+  createVNDB(match, code) {
+    this.VNDB.lastIndex = 0;
+    const href = `https://vndb.org/${code}/`.toLowerCase();
+    const anchor = this.createElement('a', { href: href , class: 'hgg2d__code hgg2d__vndb__code' });
+    const bar = `${code}`.toLowerCase();
+    anchor.append(match);
+    if (this.barCheck(bar, anchor))
+      return anchor;
+    this.addPreview(code, href, 'vndb');
     return anchor;
   }
 
@@ -1261,24 +1298,6 @@ class Chan {
     }
     return node;
   }
-  /** @param {HTMLAnchorElement} */
-  getEventImg (target) {
-    let img;
-    if (target.href.includes('ci-en')) {
-      const code = target.href.match(/creator\S*/)[0];
-      img = this.lewds.querySelector(`a[href$="${code}" i]`).firstChild;
-    } else if (target.href.includes('circle/profile')) {
-      const code = target.href.match(/[RV]G\d{5,8}/)[0];
-      img = this.lewds.querySelector(`a[href*="${code}" i]`).firstChild;
-    } else if (target.href.includes('dlsite')) {
-      const code = target.href.match(/[RV][JE](\d{2})?\d{6}/)[0];
-      img = this.lewds.querySelector(`a[href*="${code}" i]`).firstChild;
-    } else if (target.href.includes('dmm.co.jp')) {
-      const code = target.href.match(/d_\d{1,}/)[0];
-      img = this.lewds.querySelector(`a[href*="${code}" i]`).firstChild;
-    }
-    return img;
-  }
 
   /** @param {MouseEvent} e */
   over = (e) => {
@@ -1287,7 +1306,7 @@ class Chan {
     if (!target) return;
     const behavior = this.settings.smoothScrolling ? 'smooth' : 'instant';
     /** @type {HTMLImageElement} */
-    const img = this.getEventImg(target);
+    const img = this.lewds.querySelector(`a[href="${target.href}" i]`).firstChild;
     if (!img) return;
     if (this.settings.previewGrid && this.settings.previewBar) {
       img.classList.add('hgg2d__active');
@@ -1315,7 +1334,7 @@ class Chan {
     if (!target) return;
     const settings = JSON.parse(localStorage.getItem('hgg2d'));
     const lewds = document.querySelector('.hgg2d__lewds');
-    const img = this.getEventImg(target);
+    const img = this.lewds.querySelector(`a[href="${target.href}" i]`).firstChild;
     if (settings.previewGrid && settings.previewBar) {
       if (!img) return;
       img.classList.remove('hgg2d__active');
@@ -1384,7 +1403,8 @@ class Chan {
     this.matchText(node, this.DMMCode, (match, code) => this.createDMM(match, code));
     this.matchText(node, this.RGCirc, (match, code) => this.createCirc(match, code));
     this.matchText(node, this.RJCode, (match, code, bucket) => this.createRJ(match, code, bucket));
-    this.matchText(node, this.SteamCode, (match, code) => this.createSteam(match, code));
+    this.matchText(node, this.Steam, (match, code) => this.createSteam(match, code));
+    this.matchText(node, this.VNDB, (match, code) => this.createVNDB(match, code));
     this.matchSearches(node);
   }
 }

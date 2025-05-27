@@ -11,7 +11,9 @@ Version 2.1.1
     Previews are restricted by the geoblock so results may vary
     Tunneled traffic to dlsite will work with this script
 - Added support for steam
-  - Works with full links and bin style S[digits] codes
+  - Works with full links and bin style S[digits]
+- Added support for vndb
+  - Works with full links and v[digits]
 - Added site labels to grid previews
 - Hover preview works with cien and dlsite circle previews.
 = UI Changes
