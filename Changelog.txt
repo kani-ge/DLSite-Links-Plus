@@ -18,10 +18,13 @@ Version 2.1.1
 - Hover preview works with cien and dlsite circle previews.
 = UI Changes
 - Added new settings to settings dailog to toggle active sites
+- Added toggle for code list
 = Bugfix
 - Fixed previews not displaying on desuarchive. They have a stricter CSP.
 - Fixed dlsite circle link generation, missing forward slash
 - Fixed dlsite circle code detection, now works with 8 digit codes
+= Miscellaneous
+- Settings now preserve across domains
 
 Version 2.1.0
 = New managment

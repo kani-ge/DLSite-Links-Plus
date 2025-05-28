@@ -18,6 +18,8 @@
 // @downloadURL https://github.com/kani-ge/DLSite-Links-Plus/raw/master/DLSite%20Links%20Plus.user.js
 // @updateURL   https://github.com/kani-ge/DLSite-Links-Plus/raw/master/DLSite%20Links%20Plus.user.js
 // @grant       GM.xmlHttpRequest
+// @grant       GM.setValue
+// @grant       GM.getValue
 // @run-at      document-idle
 // ==/UserScript==
 class Chan {
@@ -25,10 +27,10 @@ class Chan {
   DMMCode = /(?:(?:dmm|www|https?)[^>\s]+)?(?:cid=)?(?:d_|DMM)(\d{6})\/?/gi;
   RGCirc = /(?:(?:http|www)?\S*com\S*)?[rv]g(\d{5,8})(?:\.html)?/gi;
   RJCode = /(?:(?:http|www|dlsite)[^>\s]+)?[vr][je]((\d{3,5})\d{3})(?:\.html)?/gi;
-  Steam = /(?:(?:https?[^>\s]+)?store\.steampowered\.com\/app\/|\ss|^s)(\d+)(?:[^>\s]+)?/gi;
-  VNDB = /(?:(?:[^>\s]+)?vndb.org\/|\s|^)(v\d+)/gi;
+  Steam = /(?:(?:https?[^>\s]+)?store\.steampowered\.com\/app\/|\ss|^s)(\d{3,})(?:[^>\s]+)?/gi;
+  VNDB = /(?:(?:[^>\s]+)?vndb.org\/|\s|^)(v\d+)(?:[^\.\d])/gi;
 
-  constructor() {
+  constructor(settings) {
     switch(location.hostname) {
       case 'boards.4chan.org':
       case 'boards.4channel.org':
@@ -42,13 +44,11 @@ class Chan {
         this.fileSelector = '.fileinfo';
         this.addNavBar = true;
         break;
+      case 'desuarchive.org':
+        this.embedPreview = true;
+      case 'arch.b4k.dev':
+        this.dataPreview = true;
       default:  // assume foolFuuka archive
-        if (location.hostname == 'desuarchive.org'){
-          this.embedPreview = true;
-          this.dataPreview = true;
-        }
-        if (location.hostname == 'arch.b4k.dev')
-          this.dataPreview = true;
         this.threadSelector = '.thread:not(.stub)';
         this.postSelector = '.post';
         this.fileSelector = '.post_file';
@@ -59,16 +59,17 @@ class Chan {
     }
 
     this.thread = document.querySelector(this.threadSelector);
-    this.initSettings();
+    this.initSettings(settings);
     this.html();
     this.css();
     this.lewds = this.hgg2d.querySelector('.hgg2d__lewds');
     this.codes = this.hgg2d.querySelector('.hgg2d__codes');
+    this.codeToggle = this.hgg2d.querySelector('.hgg2d__codeToggle > a');
     this.gridToggle = this.hgg2d.querySelector('.hgg2d__lewdsToggle > a');
     this.jumpLinksToggle = this.hgg2d.querySelector('.hgg2d__jumpLinksToggle > a')
     this.settingsToggle = this.hgg2d__settings.querySelector('.hgg2d__settingsToggle > a');
     this.settingsBox = this.hgg2d__settings.querySelector('.hgg2d__settings');
-    this.prev = this.addElement('img', document.body, { class: 'hgg2d__follow' });
+    this.prev = this.addElement( this.embedPreview ? 'embed' : 'img', document.body, { class: 'hgg2d__follow' });
     this.prev.style.visibility = 'hidden';
     this.initEventListeners();
     this.toggle();
@@ -168,15 +169,15 @@ class Chan {
         break;
       case 'steam':
         img = this.createElement( this.embedPreview ? 'embed' : 'img', { class: 'hgg2d__lewds__preview hgg2d__steam' });
-        //if (!this.settings.gridSteam)
-          //anchor.parentNode.classList.add('hgg2d-hidden');
+        if (!this.settings.gridSteam)
+          anchor.parentNode.classList.add('hgg2d-hidden');
         anchor.appendChild(img);
         success = await this.fetchSteam(src, img);
         break;
       case 'vndb':
         img = this.createElement( this.embedPreview ? 'embed' : 'img', { class: 'hgg2d__lewds__preview hgg2d__vndb' });
-        //if (!this.settings.gridVNDB)
-          //anchor.parentNode.classList.add('hgg2d-hidden');
+        if (!this.settings.gridVNDB)
+          anchor.parentNode.classList.add('hgg2d-hidden');
         anchor.appendChild(img);
         success = await this.fetchVNDB(src, img);
         break;
@@ -548,7 +549,8 @@ class Chan {
     const style = this.addElement('style', document.head);
     const probe = this.addElement('div', document.body, { class: 'post reply' });
     const { color, backgroundColor } = window.getComputedStyle(probe);
-    probe.remove();
+    const colors = backgroundColor.match(/\d+/g);
+    const newBackgroundColor = `rgb(${colors.slice(0,3).join(', ')})`;
     this.height = 38;
     this.absoluteTop = this.thread.getBoundingClientRect().top + document.documentElement.scrollTop;
     this.absoluteBot = this.thread.getBoundingClientRect().bottom + document.documentElement.scrollTop;
@@ -557,7 +559,7 @@ class Chan {
     :root {
       --absoluteTop: ${this.absoluteTop + this.offset}px;
       --fixedTop: ${this.offset}px;
-      --backgroundColor: ${backgroundColor};
+      --backgroundColor: ${newBackgroundColor};
       --color: ${color};
       --height:  70%;
     }
@@ -593,16 +595,30 @@ class Chan {
     .hgg2d__toggles {
       display: grid;
       grid-template-columns: repeat(2, max-content);
+      grid-template-areas:
+        'gridt codet'
+        'jumpt jumpt';
       justify-content: right;
       grid-area: toggle;
       margin-right: 5px;
+      margin-bottom: 5px;
     }
 
     .hgg2d__lewdsToggle {
-      margin-bottom: .5rem;
+      grid-area: gridt;
     }
 
-    .hgg2d__lewdsToggle > a {
+    .hgg2d__codeToggle {
+      grid-area: codet;
+    }
+
+    .hgg2d__jumpLinksToggle {
+      grid-area: jumpt;
+    }
+
+    .hgg2d__lewdsToggle > a,
+    .hgg2d__codeToggle > a,
+    .hgg2d__jumpLinksToggle > a {
       cursor: pointer;
     }
 
@@ -664,6 +680,7 @@ class Chan {
 
     .hgg2d__jump {
       border-inline: 2px solid;
+      padding-block: 0px;
       padding-inline: 2px;
       background-color: white;
       color: black;
@@ -704,6 +721,7 @@ class Chan {
       grid-area: matches;
       height: 5rem;
       margin-bottom: 0.5rem;
+      margin-top: 0.5rem;
     }
 
     .hgg2d__match {
@@ -795,6 +813,7 @@ class Chan {
 
     .hgg2d__navbarItem::before,
     .hgg2d__toggle::before,
+    .hgg2d__codeToggle::before,
     .hgg2d__lewdsToggle::before,
     .hgg2d__jumpLinksToggle::before,
     .hgg2d__settingsToggle::before {
@@ -803,6 +822,7 @@ class Chan {
     }
     .hgg2d__navbarItem::after,
     .hgg2d__toggle::after,
+    .hgg2d__codeToggle::after,
     .hgg2d__lewdsToggle::after,
     .hgg2d__jumpLinksToggle::after,
     .hgg2d__settingsToggle::after {
@@ -853,13 +873,16 @@ class Chan {
         <div class="hgg2d__lewdsToggle">
           <a>${this.settings.previewGrid ? 'hide grid' : 'show grid'}</a>
         </div>
+        <div class="hgg2d__codeToggle">
+          <a>${this.settings.codeList ? 'hide list' : 'show list'}</a>
+        </div>
         <div class='hgg2d__jumpLinksToggle'>
-          <a>${this.settings.jumpLinks ? 'hide jumps' : 'show jumps'}</a>
+          <a>${this.settings.jumpLinks ? 'hide jump buttons' : 'show jump buttons'}</a>
         </div>
       </div>
       <main class="hgg2d__lewds ${this.settings.previewGrid ? '' : 'hgg2d__nogrid'}">
       </main>
-      <aside class="hgg2d__codes">
+      <aside class="hgg2d__codes ${this.settings.codeList ? '' : 'hgg2d-hidden'}">
       </aside>
     `);
     this.hgg2d__settings = this.addElement('aside', document.body, { class: 'hgg2d__settings hgg2d-hidden' });
@@ -872,6 +895,9 @@ class Chan {
           <input type="checkbox" ${this.settings.previewBar ? 'checked' : ''} class="previewBar">Show Preview Bar</input>
         </div>
         <div>
+          <span>>></span><input type="checkbox" ${this.settings.codeList ? 'checked' : ''} class="codeList">Show Code List</input>
+        </div>
+        <div>
           <span>>></span><input type="checkbox" ${this.settings.previewGrid ? 'checked' : ''} class="previewGrid">Show Preview Grid</input>
         </div>
         <div>
@@ -881,7 +907,7 @@ class Chan {
       <div class="hgg2d__settings__jumps">
         <span class="hgg2d__settings__jumps__header">Jump to Post Settings:</span>
         <div>
-          <span></span><input type="checkbox" ${this.settings.jumpLinks ? 'checked' : ''} class="jumpLinks">Show Post Jumps</input>
+          <span></span><input type="checkbox" ${this.settings.jumpLinks ? 'checked' : ''} class="jumpLinks">Show Post Jump Buttons</input>
         </div>
         <div>
           <span>>></span><input type="checkbox" ${this.settings.jumpLinksGrid ? 'checked' : ''} class="jumpLinksGrid">Show Post Jumps In Grid</input>
@@ -899,10 +925,16 @@ class Chan {
           <span></span><input type="checkbox" ${this.settings.gridCircle ? 'checked' : ''} class="gridCircle">Include dlsite circles</input>
         </div>
         <div>
-          <span></span><input type="checkbox" ${this.settings.gridCIEN ? 'checked' : ''} class="gridCIEN">Include ci-en Blogs</input>
+          <span></span><input type="checkbox" ${this.settings.gridCIEN ? 'checked' : ''} class="gridCIEN">Include ci-en</input>
         </div>
         <div>
-          <span></span><input type="checkbox" ${this.settings.gridDMM ? 'checked' : ''} class="gridDMM">Include dmm games</input>
+          <span></span><input type="checkbox" ${this.settings.gridDMM ? 'checked' : ''} class="gridDMM">Include dmm</input>
+        </div>
+        <div>
+          <span></span><input type="checkbox" ${this.settings.gridSteam ? 'checked' : ''} class="gridSteam">Include steam</input>
+        </div>
+        <div>
+          <span></span><input type="checkbox" ${this.settings.gridVNDB ? 'checked' : ''} class="gridVNDB">Include vndb</input>
         </div>
         <div>
           <span></span><input type="checkbox" ${this.settings.gridSiteLabels ? 'checked' : ''} class="gridSiteLabels">Show site labels</input>
@@ -977,8 +1009,8 @@ class Chan {
     });
 
     this.jumpLinksToggle.addEventListener('click', () => {
-      this.settings.jumpLinks = this.jumpLinksToggle.textContent === 'show jumps';
-      this.jumpLinksToggle.textContent = this.settings.jumpLinks ? 'hide jumps' : 'show jumps';
+      this.settings.jumpLinks = this.jumpLinksToggle.textContent === 'show jump buttons';
+      this.jumpLinksToggle.textContent = this.settings.jumpLinks ? 'hide jump buttons' : 'show jump buttons';
       this.toggleJumpLinksGrid();
       this.toggleJumpLinksCodes();
     });
@@ -990,6 +1022,16 @@ class Chan {
         this.lewds.classList.remove('hgg2d__nogrid');
       } else {
         this.lewds.classList.add('hgg2d__nogrid');
+      }
+    });
+
+    this.codeToggle.addEventListener('click', () => {
+      this.settings.codeList = this.codeToggle.textContent === 'show list';
+      this.codeToggle.textContent = this.settings.codeList ? 'hide list' : 'show list';
+      if (this.settings.codeList) {
+        this.codes.classList.remove('hgg2d-hidden');
+      } else {
+        this.codes.classList.add('hgg2d-hidden');
       }
     });
 
@@ -1074,6 +1116,16 @@ class Chan {
       }
     });
 
+    this.hgg2d__settings.querySelector('.codeList').addEventListener('change', (e) => {
+      this.settings.codeList = e.target.checked;
+      if (this.settings.codeList) {
+        this.codes.classList.remove('hgg2d-hidden');
+      } else {
+        this.codes.classList.add('hgg2d-hidden');
+      }
+      this.codeToggle.textContent = this.settings.codeList ? 'hide list' : 'show list';
+    });
+
     this.hgg2d__settings.querySelector('.previewGrid').addEventListener('change', (e) => {
       this.settings.previewGrid = e.target.checked;
       if (this.settings.previewGrid) {
@@ -1092,7 +1144,7 @@ class Chan {
       this.settings.jumpLinks = e.target.checked;
       this.toggleJumpLinksGrid();
       this.toggleJumpLinksCodes();
-      this.jumpLinksToggle.textContent = this.settings.jumpLinks ? 'hide jumps' : 'show jumps';
+      this.jumpLinksToggle.textContent = this.settings.jumpLinks ? 'hide jump buttons' : 'show jump buttons';
     });
 
     this.hgg2d__settings.querySelector('.jumpLinksGrid').addEventListener('change', (e) => {
@@ -1131,10 +1183,26 @@ class Chan {
 
     this.hgg2d__settings.querySelector('.gridDMM').addEventListener('change', (e) => {
       this.settings.gridDMM = e.target.checked;
-      if (this.settings.gridCIEN)
+      if (this.settings.gridDMM)
         this.hgg2d.querySelectorAll('.hgg2d__dmm').forEach(el => el.parentNode.parentNode.classList.remove('hgg2d-hidden'));
       else
         this.hgg2d.querySelectorAll('.hgg2d__dmm').forEach(el => el.parentNode.parentNode.classList.add('hgg2d-hidden'));
+    });
+
+    this.hgg2d__settings.querySelector('.gridSteam').addEventListener('change', (e) => {
+      this.settings.gridSteam = e.target.checked;
+      if (this.settings.gridSteam)
+        this.hgg2d.querySelectorAll('.hgg2d__steam').forEach(el => el.parentNode.parentNode.classList.remove('hgg2d-hidden'));
+      else
+        this.hgg2d.querySelectorAll('.hgg2d__steam').forEach(el => el.parentNode.parentNode.classList.add('hgg2d-hidden'));
+    });
+
+    this.hgg2d__settings.querySelector('.gridVNDB').addEventListener('change', (e) => {
+      this.settings.gridVNDB = e.target.checked;
+      if (this.settings.gridVNDB)
+        this.hgg2d.querySelectorAll('.hgg2d__vndb').forEach(el => el.parentNode.parentNode.classList.remove('hgg2d-hidden'));
+      else
+        this.hgg2d.querySelectorAll('.hgg2d__vndb').forEach(el => el.parentNode.parentNode.classList.add('hgg2d-hidden'));
     });
 
     this.hgg2d__settings.querySelector('.gridSiteLabels').addEventListener('change', (e) => {
@@ -1162,17 +1230,15 @@ class Chan {
     }
   }
 
-  initSettings() {
+  initSettings(settingsString) {
     const defaults = {
       firstRun: true,
       matches: [
-        ['VH', 'https://mega.nz/#F!F9ZyVSLY!6U0TlvbW88UFAynZ3pxJBg'],
-        ['Violated Heroine', 'https://mega.nz/#F!F9ZyVSLY!6U0TlvbW88UFAynZ3pxJBg'],
-        ['(nanako|serena)\'s game', 'https://mega.nz/#F!F9ZyVSLY!6U0TlvbW88UFAynZ3pxJBg'],
         ['fumika\'s game', 'https://www.dlsite.com/maniax/work/=/product_id/RJ242995.html'],
       ],
       previewBar: true,
       previewGrid: true,
+      codeList: true,
       smoothScrolling: true,
       jumpLinks: true,
       jumpLinksCodes: true,
@@ -1181,6 +1247,8 @@ class Chan {
       gridCIEN: true,
       gridCircle: true,
       gridDMM: true,
+      gridSteam: true,
+      gridVNDB: true,
       gridSiteLabels: true,
       blocks: [],
     };
@@ -1190,6 +1258,7 @@ class Chan {
      *    matches: {string: string}[],
      *    previewBar: boolean,
      *    previewGrid: boolean,
+     *    codeList: true,
      *    jumpLinks: boolean,
      *    jumpLinksCodes: boolean,
      *    jumpLinksGrid: boolean,
@@ -1197,12 +1266,20 @@ class Chan {
      *    gridCIEN: boolean,
      *    gridCircle: boolean,
      *    gridDMM: boolean,
+     *    gridSteam: boolean,
+     *    gridVNDB: boolean,
      *    gridSiteLabels: boolean,
      *    smoothScrolling: boolean,
      *    blocks: string[]
      * }}
      */
-    const target = JSON.parse(localStorage.getItem('hgg2d')) || defaults;
+    let target;
+    if (localStorage.getItem('hgg2d')) {
+      target = JSON.parse(localStorage.getItem('hgg2d'));
+      localStorage.removeItem('hgg2d');
+    } else {
+      target = JSON.parse(settingsString) || defaults;
+    }
     const keys = Object.keys(target);
     const defaultKeys = Object.keys(defaults);
     for (const key of Object.keys(defaults)) {
@@ -1226,6 +1303,9 @@ class Chan {
           case 'previewGrid':
             this.hgg2d__settings.querySelector('.previewGrid').checked = value;
             break;
+          case 'codeList':
+            this.hgg2d__settings.querySelector('.codeList').checked = value;
+            break;
           case 'previewBar':
             this.hgg2d__settings.querySelector('.previewBar').checked = value;
             break;
@@ -1233,11 +1313,11 @@ class Chan {
             this.hgg2d__settings.querySelector('.jumpLinks').checked = value;
             break;
         }
-        localStorage.setItem('hgg2d', JSON.stringify(target));
+        GM.setValue('hgg2d', JSON.stringify(target));
         return true;
       }
     });
-    localStorage.setItem('hgg2d', JSON.stringify(this.settings));
+    GM.setValue('hgg2d', JSON.stringify(this.settings));
     this.settings_4chan = JSON.parse(localStorage.getItem('4chan-settings'));
   }
 
@@ -1274,7 +1354,7 @@ class Chan {
           if (regex.test(child.data)) {
             let pad = 0;
             child.data.replace(regex, (match, ...args) => {
-              if (this.settings.blocks.some(block => block.toUpperCase().includes(match))) return match;
+              if (this.settings.blocks.some(block => block.toUpperCase().includes(match.toUpperCase()))) return match;
               const offset = args[args.length - 2];
               const groups = args.slice(0, -2);
               const newTextNode = child.splitText(offset + pad);
@@ -1332,10 +1412,9 @@ class Chan {
     /** @type {HTMLAnchorElement} */
     const target = e.target.classList.contains('hgg2d__code') ? e.target : undefined;
     if (!target) return;
-    const settings = JSON.parse(localStorage.getItem('hgg2d'));
     const lewds = document.querySelector('.hgg2d__lewds');
     const img = this.lewds.querySelector(`a[href="${target.href}" i]`).firstChild;
-    if (settings.previewGrid && settings.previewBar) {
+    if (this.settings.previewGrid && this.settings.previewBar) {
       if (!img) return;
       img.classList.remove('hgg2d__active');
       return;
@@ -1408,4 +1487,6 @@ class Chan {
     this.matchSearches(node);
   }
 }
-new Chan();
+GM.getValue('hgg2d', null).then((settings) => {
+  new Chan(settings);
+});
