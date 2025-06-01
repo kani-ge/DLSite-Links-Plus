@@ -28,7 +28,7 @@ class Chan {
   RGCirc = /(?:(?:http|www)?\S*com\S*)?[rv]g(\d{5,8})(?:\.html)?/gi;
   RJCode = /(?:(?:http|www|dlsite)[^>\s]+)?[vr][je]((\d{3,5})\d{3})(?:\.html)?/gi;
   Steam = /(?:(?:https?[^>\s]+)?store\.steampowered\.com\/app\/|\ss|^s)(\d{3,})(?:[^>\s]+)?/gi;
-  VNDB = /(?:(?:[^>\s]+)?vndb.org\/|\s|^)(v\d+)(?:[^\.\d])/gi;
+  VNDB = /(?:(?:[^>\s]+)?vndb.org\/|\s|^)(v[1-9]\d*)(?!(?:\.\d|\w))/g;
 
   constructor(settings) {
     switch(location.hostname) {
@@ -290,7 +290,7 @@ class Chan {
     }
     if (complete == 0) {
       const img = this.createElement( this.embedPreview ? 'embed' : 'img', { class: 'hgg2d__lewds__preview' });
-      const result = await this.fetchImg('https://www.dlsite.com/images/web/common/logo/pc/logo-dlsite-r18.png', img);
+      const result = await this.fetchImg('https://www.dlsite.com/images/web/home/pic_not_found_01.png', img);
       await result;
       if (!result)
         return false;
@@ -558,10 +558,10 @@ class Chan {
     const css = (`
     :root {
       --absoluteTop: ${this.absoluteTop + this.offset}px;
-      --fixedTop: ${this.offset}px;
+      --fixedTop: 15vh;
       --backgroundColor: ${newBackgroundColor};
       --color: ${color};
-      --height:  70%;
+      --height:  65vh;
     }
     .hgg2d-absolute {
       position: absolute;
@@ -576,14 +576,13 @@ class Chan {
       right: 1rem;
       display: grid;
       grid-template-columns: 1fr max-content;
-      grid-template-rows: min-content min-content auto;
+      grid-template-rows: min-content min-content fit-content(var(--height));
       grid-auto-rows: auto;
       grid-template-areas:
         'nav nav'
         'toggle toggle'
         'lewds codes';
       max-width: 50vw;
-      height: var(--height);
     }
 
     .hgg2d__navLinks {
@@ -765,6 +764,7 @@ class Chan {
       background: var(--backgroundColor);
       color: var(--color);
       box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
+      z-index: 1;
     }
 
     .hgg2d__settings__main {
@@ -808,6 +808,7 @@ class Chan {
     .hgg2d__textarea {
       resize: none;
       height: 1rem;
+      width: 90%;
       overflow: hidden;
     }
 
@@ -1354,7 +1355,7 @@ class Chan {
           if (regex.test(child.data)) {
             let pad = 0;
             child.data.replace(regex, (match, ...args) => {
-              if (this.settings.blocks.some(block => block.toUpperCase().includes(match.toUpperCase()))) return match;
+              if (this.settings.blocks.some(block => match.toUpperCase().includes(block.toUpperCase()))) return match;
               const offset = args[args.length - 2];
               const groups = args.slice(0, -2);
               const newTextNode = child.splitText(offset + pad);
