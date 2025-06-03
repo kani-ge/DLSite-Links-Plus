@@ -1154,7 +1154,6 @@ class Chan {
     });
 
     this.hgg2d__settings.querySelector('.filterLimitCount').addEventListener('focusout', (e) => {
-      console.log(e.target.value)
       const num = parseInt(e.target.value);
       if (num) {
         this.settings.filterLimitCount = num;
@@ -1507,7 +1506,6 @@ class Chan {
       count += (node.outerHTML.match(ex) || []).length;
     })
     return count;
-    console.log(count);
   }
 
   /** @param {HTMLElement} node */
