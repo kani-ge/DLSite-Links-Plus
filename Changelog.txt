@@ -1,3 +1,7 @@
+Version 2.1.2
+= Features
+- Added filter to ignore posts containing more than a configurable amount of matches
+
 Version 2.1.1
 = Features
 - Added support for ci-en previews
