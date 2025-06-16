@@ -1,3 +1,9 @@
+Version 2.1.2.2
+= UI Changes
+- Site labels now line up with image edge
+= Miscellaneous
+- Regex tweak: cien will now match partial (of the form [creator/*[/article/*]]) links and sfw .net links
+
 Version 2.1.2.1
 = Bugfix
 - Fixed cien creator pages not selecting header image when article preview contains image
