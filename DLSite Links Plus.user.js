@@ -132,8 +132,8 @@ class Chan {
     div.appendChild(anchor);
     div.appendChild(siteElem);
     siteElem.textContent = site;
-    this.fetchHandler(src, anchor, site);
     this.lewds.appendChild(div);
+    this.fetchHandler(src, anchor, site);
   }
 
   /**
@@ -535,8 +535,10 @@ class Chan {
   css() {
     const style = this.addElement('style', document.head);
     const probe = this.addElement('div', document.body, { class: 'post reply' });
-    const { color, backgroundColor } = window.getComputedStyle(probe);
+    const { backgroundColor } = window.getComputedStyle(probe);
     const colors = backgroundColor.match(/\d+/g);
+    const scales = [0.299, 0.587, 0.114];
+    const textColor = colors.slice(0,3).map((e,i) => parseInt(e) * scales[i]).reduce((acc, cur) => acc + cur, 0) > 186 ? 'black' : 'white';
     const newBackgroundColor = `rgb(${colors.slice(0,3).join(', ')})`;
     this.height = 38;
     this.absoluteTop = this.thread.getBoundingClientRect().top + document.documentElement.scrollTop;
@@ -547,7 +549,7 @@ class Chan {
       --absoluteTop: ${this.absoluteTop + this.offset}px;
       --fixedTop: 15vh;
       --backgroundColor: ${newBackgroundColor};
-      --color: ${color};
+      --color: ${textColor};
       --height:  65vh;
     }
     .hgg2d-absolute {
