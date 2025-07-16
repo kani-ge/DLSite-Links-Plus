@@ -1,3 +1,7 @@
+Version
+= Features
+- Support for vndb release pages
+
 Version 2.1.2.3
 = UI Changes
 - Settings box text will now be colored based on background color to attempt to guarantee contrast

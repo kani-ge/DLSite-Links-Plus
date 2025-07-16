@@ -24,12 +24,12 @@
 // ==/UserScript==
 class Chan {
   RegexList = [
-    this.CIEN = /(?:(?:(?:http[^>\s]+)?ci-en\.(?:dlsite\.com|net))?(?:\/)?creator\/(\d*)(?:\/article\/(\d*))?)/gi,
+    this.CIEN = /(?:(?:(?:http[^>\s]+)?ci-en\.(?:dlsite\.com\/|net\/))?creator[\/-](\d*)(?:[\/-]article[\/-](\d*))?)/gi,
     this.DMMCode = /(?:(?:dmm|www|https?)[^>\s]+)?(?:cid=)?(?:d_|DMM)(\d{6})\/?/gi,
     this.RGCirc = /(?:(?:http|www)?\S*com\S*)?[rv]g(\d{5,8})(?:\.html)?/gi,
     this.RJCode = /(?:(?:http|www|dlsite)[^>\s]+)?[vr][je]((\d{3,5})\d{3})(?:\.html)?/gi,
     this.Steam = /(?:(?:https?[^>\s]+)?store\.steampowered\.com\/app\/|\ss|^s)(\d{3,})(?:[^>\s]+)?/gi,
-    this.VNDB = /(?:(?:[^>\s]+)?vndb.org\/|\s|^)(v[1-9]\d*)(?!(?:\.\d|\w))/g,
+    this.VNDB = /(?:(?:[^>\s]+)?vndb.org\/|\s|^)((?:v|(?<=\/)r)[1-9]\d*)(?!(?:\.\d|\w))/g,
   ];
 
   constructor(settings) {
@@ -328,21 +328,32 @@ class Chan {
 
   async fetchVNDB(src, imgDiv) {
     const chan = this;
-    let result;
+    let result, endpoint, fields;
+    if (src.charAt(0) == 'r') {
+      endpoint = 'release';
+      fields = 'vns.id';
+    } else {
+      endpoint = 'vn';
+      fields = 'image.thumbnail'
+    }
     await GM.xmlHttpRequest({
       method: 'POST',
-      url: 'https://api.vndb.org/kana/vn',
+      url: `https://api.vndb.org/kana/${endpoint}`,
       headers: {
         'Content-Type': 'application/json'
       },
       data: `{
-        "filters": ["id", "=", "${src.substring(1)}"],
-        "fields": "title, image.thumbnail"
+        "filters": ["id", "=", "${src}"],
+        "fields": "${fields}"
       }`,
       onerror: function(response) { result = false; },
       onload: function(response) {
-        const img = JSON.parse(response.response)['results'][0]['image']['thumbnail'];
-        result = chan.fetchImg(img, imgDiv);
+        if (src.charAt(0) == 'r') {
+          result = chan.fetchVNDB(JSON.parse(response.response)['results'][0]['vns'][0]['id'], imgDiv);
+        } else {
+          const img = JSON.parse(response.response)['results'][0]['image']['thumbnail'];
+          result = chan.fetchImg(img, imgDiv);
+        }
       }
     }).catch((e) => { result = false; });
     await result;
@@ -450,7 +461,7 @@ class Chan {
     this.VNDB.lastIndex = 0;
     const href = `https://vndb.org/${code}/`.toLowerCase();
     const anchor = this.createElement('a', { href: href , class: 'hgg2d__code hgg2d__vndb__code' });
-    const bar = `${code}`.toLowerCase();
+    const bar = code;
     anchor.append(match);
     if (this.barCheck(bar, anchor))
       return anchor;
@@ -1250,7 +1261,7 @@ class Chan {
       previewGrid: true,
       codeList: true,
       smoothScrolling: true,
-      filterLimit: true,
+      filterLimit: false,
       filterLimitCount: 20,
       jumpLinks: true,
       jumpLinksCodes: true,
