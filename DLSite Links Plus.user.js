@@ -1360,7 +1360,7 @@ class Chan {
    * @param {RegExp} regex
    * @param {Function} callback
    */
-  matchText(node, regex, callback, file = null) {
+  matchText(node, regex, callback, file = null, found_matches = new Set()) {
     /** @type {Text} */
     let child = node.firstChild;
     if (!file) {
@@ -1373,7 +1373,7 @@ class Chan {
         case Node.ELEMENT_NODE:
           if (['script', 'style', 'iframe', 'canvas'].includes(child.tagName.toLowerCase()))
             break;
-          this.matchText(child, regex, callback, file);
+          this.matchText(child, regex, callback, file, found_matches);
           break;
         case Node.TEXT_NODE:
           if (regex.test(child.data)) {
@@ -1393,8 +1393,10 @@ class Chan {
                 fileflag = true;
                 targetNode = file;
               }
-              this.addPostJump(targetNode, anchor.href, fileflag);
+              if (!found_matches.has(match))
+                this.addPostJump(targetNode, anchor.href, fileflag);
               child = newTextNode;
+              found_matches.add(match);
             });
           }
           break;

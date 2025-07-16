@@ -1,6 +1,9 @@
 Version
 = Features
 - Support for vndb release pages
+= Miscellaneous
+- Posts containing multiple instances of a single code now generate only one occurrence for the code list
+- Regex tweak: cien will match codes with hyphens in place of forward slashes, useful for filenames
 
 Version 2.1.2.3
 = UI Changes
