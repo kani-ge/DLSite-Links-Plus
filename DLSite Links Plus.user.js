@@ -75,6 +75,7 @@ class Chan {
     this.prev.style.visibility = 'hidden';
     this.initEventListeners();
     this.toggle();
+    this.delayedFetch = new Map();
 
     /** @type {Set<string>} */
     this.games = new Set();
@@ -83,6 +84,7 @@ class Chan {
     if (this.opSelector)
       this.work(document.querySelector(this.opSelector));
     document.querySelectorAll(this.postSelector).forEach(el => this.work(el));
+    this.fullFilter();
   }
 
 
@@ -133,6 +135,13 @@ class Chan {
     div.appendChild(siteElem);
     siteElem.textContent = site;
     this.lewds.appendChild(div);
+    if (this.filtered) {
+      const id = this.delayedFetch.size.toString();
+      const func = this.fetchHandler.bind(this, src, anchor, site);
+      this.delayedFetch.set(id, func);
+      anchor.setAttribute('data-delayid', id);
+      return;
+    }
     this.fetchHandler(src, anchor, site);
   }
 
@@ -186,6 +195,7 @@ class Chan {
       default:
         success = false;
     }
+
     if (!success)
       anchor.parentNode.remove();
   }
@@ -803,7 +813,8 @@ class Chan {
       width: 3rem;
     }
 
-    .hgg2d-hidden {
+    .hgg2d-hidden,
+    .hgg2d__filtered {
       display: none;
     }
 
@@ -1144,13 +1155,15 @@ class Chan {
 
     this.hgg2d__settings.querySelector('.smoothScrolling').addEventListener('change', (e) => {
       this.settings.smoothScrolling = e.target.checked;
+
     });
 
     this.hgg2d__settings.querySelector('.filterLimit').addEventListener('change', (e) => {
       this.settings.filterLimit = e.target.checked;
+      this.applyFilter();
     });
 
-    this.hgg2d__settings.querySelector('.filterLimitCount').addEventListener('focusout', (e) => {
+    this.hgg2d__settings.querySelector('.filterLimitCount').addEventListener('change', (e) => {
       const num = parseInt(e.target.value);
       if (num) {
         this.settings.filterLimitCount = num;
@@ -1158,7 +1171,7 @@ class Chan {
       } else {
         e.target.value = this.settings.filterLimitCount;
       }
-
+      this.applyFilter();
     });
 
     this.hgg2d__settings.querySelector('.jumpLinks').addEventListener('change', (e) => {
@@ -1413,25 +1426,40 @@ class Chan {
     if (!target) return;
     const behavior = this.settings.smoothScrolling ? 'smooth' : 'instant';
     /** @type {HTMLImageElement} */
-    const img = this.lewds.querySelector(`a[href="${target.href}" i]`).firstChild;
-    if (!img) return;
-    if (this.settings.previewGrid && this.settings.previewBar) {
-      img.classList.add('hgg2d__active');
-      img.scrollIntoView( { behavior: behavior, block: 'center' });
-      return;
-    }
-    const rect = target.getBoundingClientRect();
-    if (img.tagName == 'DIV') {
-      this.tmpPrev = this.prev;
-      this.prev = img.cloneNode(true);
-      this.prev.classList.add('hgg2d__follow');
-      document.body.appendChild(this.prev);
-    } else {
-      this.prev.src = img.src;
-    }
-    this.prev.style.visibility = '';
-    this.prev.style.top = ((window.innerHeight - rect.top < 420) ? window.innerHeight - 435 : rect.top - 15) + 'px';
-    this.prev.style.left = ((window.innerWidth - rect.left < 560) ? rect.left - 565 : rect.right + 5) + 'px';
+    const anchor = this.lewds.querySelector(`a[href="${target.href}" i]`);
+    new Promise((res, rej) => {
+      (async () => {
+        if (anchor.hasAttribute('data-delayid')) {
+          const id = anchor.getAttribute('data-delayid');
+          const result = this.delayedFetch.get(id)();
+          anchor.removeAttribute('data-delayid');
+          this.delayedFetch.delete(id);
+          await result;
+        }
+        const img = anchor.firstChild;
+        res(img);
+      })();
+    }).then((img) => {
+      if (!img) return;
+      if (!target.matches(':hover')) return;
+      if (this.settings.previewGrid && this.settings.previewBar) {
+        img.classList.add('hgg2d__active');
+        img.scrollIntoView( { behavior: behavior, block: 'center' });
+        return;
+      }
+      const rect = target.getBoundingClientRect();
+      if (img.tagName == 'DIV') {
+        this.tmpPrev = this.prev;
+        this.prev = img.cloneNode(true);
+        this.prev.classList.add('hgg2d__follow');
+        document.body.appendChild(this.prev);
+      } else {
+        this.prev.src = img.src;
+      }
+      this.prev.style.visibility = '';
+      this.prev.style.top = ((window.innerHeight - rect.top < 420) ? window.innerHeight - 435 : rect.top - 15) + 'px';
+      this.prev.style.left = ((window.innerWidth - rect.left < 560) ? rect.left - 565 : rect.right + 5) + 'px';
+    });
   };
 
   /** @param {MouseEvent} e */
@@ -1459,7 +1487,7 @@ class Chan {
   click = (e) => {
     const target = e.target.classList.contains('hgg2d__jump') ? e.target : undefined;
     if (!target) return;
-    const destination = document.getElementById(target.getAttribute('jumpTo'));
+    const destination = document.getElementById(target.getAttribute('data-jumpTo'));
     destination.scrollIntoView( { behavior: this.settings.smoothScrolling ? 'smooth' : 'instant', block: 'center' } );
   }
 
@@ -1477,11 +1505,15 @@ class Chan {
       const id = href + '__' + codeContainer.childElementCount;
       const listNotHidden = this.settings.jumpLinks && this.settings.jumpLinksCodes;
       const gridNotHidden = this.settings.jumpLinks && this.settings.jumpLinksGrid;
-      const jumpElemList = this.createElement('button', { class: `hgg2d__jump hgg2d__jump__list ${listNotHidden ? '' : 'hgg2d-hidden'}` });
-      const jumpElemGrid = this.createElement('button', { class: `hgg2d__jump hgg2d__jump__grid ${gridNotHidden ? '' : 'hgg2d-hidden'}` });
-      jumpElemList.setAttribute('jumpTo', id);
+      const filtered = this.filtered ? 'hgg2d__filtered' : '';
+      const classBase = `hgg2d__jump ${filtered}`;
+      const jumpElemList = this.createElement('button', { class: `${classBase} hgg2d__jump__list ${listNotHidden ? '' : 'hgg2d-hidden'}` });
+      const jumpElemGrid = this.createElement('button', { class: `${classBase} hgg2d__jump__grid ${gridNotHidden ? '' : 'hgg2d-hidden'}` });
+      jumpElemList.setAttribute('data-jumpTo', id);
+      jumpElemList.setAttribute('data-matchCount', this.matchCount);
       jumpElemList.append(letter);
-      jumpElemGrid.setAttribute('jumpTo', id);
+      jumpElemGrid.setAttribute('data-jumpTo', id);
+      jumpElemGrid.setAttribute('data-matchCount', this.matchCount);
       jumpElemGrid.append(letter);
       if (fileflag)
         target.appendChild(this.createElement('div', { id: id }));
@@ -1489,6 +1521,37 @@ class Chan {
         target.id = id;
       codeContainer.appendChild(jumpElemList);
       lewdJumpContainer.appendChild(jumpElemGrid);
+    }
+  }
+
+  applyFilter() {
+    this.hgg2d.querySelectorAll('.hgg2d__jump').forEach((j) => {
+      if (!this.settings.filterLimit || (j.getAttribute('data-matchCount') < this.settings.filterLimitCount))
+        j.classList.remove('hgg2d__filtered');
+      else
+        j.classList.add('hgg2d__filtered');
+    });
+    this.fullFilter();
+  }
+
+  fullFilter() {
+    this.lewds.querySelectorAll('.hgg2d__lewds__container').forEach( e => this.nodeFilter(e) );
+    this.codes.querySelectorAll('.hgg2d__code__container').forEach( e => this.nodeFilter(e) );
+  }
+
+  nodeFilter(node) {
+    const jumpList = node.querySelectorAll('.hgg2d__jump');
+    if ( ![...jumpList].some( e => !e.classList.contains('hgg2d__filtered') ) ) {
+      node.classList.add('hgg2d__filtered');
+    } else {
+      node.classList.remove('hgg2d__filtered');
+      if (node.classList.contains('hgg2d__lewds__container') && node.childNodes[1].hasAttribute('data-delayid')){
+        const anchor = node.childNodes[1];
+        const id = anchor.getAttribute('data-delayid');
+        const result = this.delayedFetch.get(id)();
+        anchor.removeAttribute('data-delayid');
+        this.delayedFetch.delete(id);
+      }
     }
   }
 
@@ -1513,8 +1576,10 @@ class Chan {
       el.remove();
     }
     node.normalize();
-    if ( this.settings.filterLimit && this.countMatches(node) >= this.settings.filterLimitCount)
-      return;
+    this.matchCount = this.countMatches(node);
+    this.filtered = this.settings.filterLimit && this.matchCount >= this.settings.filterLimitCount;
+    //if ( this.settings.filterLimit && this.countMatches(node) >= this.settings.filterLimitCount)
+      //return;
     this.matchText(node, this.CIEN, (match, creator, article) => this.createCien(match, creator, article));
     this.matchText(node, this.DMMCode, (match, code) => this.createDMM(match, code));
     this.matchText(node, this.RGCirc, (match, code) => this.createCirc(match, code));
