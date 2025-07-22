@@ -1,6 +1,10 @@
-Version
+Version 2.1.3
 = Features
 - Support for vndb release pages
+- Reworked post filter
+  - Filter will apply on settings update, not just on page load
+  - Filtered codes will still hyperlink and create previews on hover
+  - Hover previews however will not be prefetched
 = Miscellaneous
 - Posts containing multiple instances of a single code now generate only one occurrence for the code list
 - Regex tweak: cien will match codes with hyphens in place of forward slashes, useful for filenames

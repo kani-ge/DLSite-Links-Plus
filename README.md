@@ -6,7 +6,7 @@ A lightweight utility script for /hgg2d/, linkifies and generates previews for v
 
 ### Features:
 
-- Supports dlsite games and circles (full links and RJ, RG, RE, VJ, VG codes), ci-en blogs (article and creator pages), steam games (full links and S* codes), and vndb VNs (full links and v* codes)
+- Supports dlsite games and circles (full links and RJ, RG, RE, VJ, VG codes), ci-en blogs (article and creator pages), steam games (full links and S* codes), and vndb VNs and releases (full links and v* codes)
 - Hover previews
 - Grid containing previews
 - Buttons that scroll the page to matched links and codes
